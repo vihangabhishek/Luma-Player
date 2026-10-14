@@ -63,12 +63,12 @@ internal static class StartupDiagnostics
         Write("Unhandled application startup/runtime exception.", ex);
         try
         {
-            MessageBox.Show(
+            System.Windows.MessageBox.Show(
                 "Luma Player could not start correctly.\n\n" +
                 ex.GetType().Name + ": " + ex.Message + "\n\n" +
                 "Diagnostic log (stored on your PC):\n" + LogPath + "\n\n" +
                 "Please report this error on the GitHub Issues page. The log is NOT uploaded automatically.",
-                "Luma Player startup error", MessageBoxButton.OK, MessageBoxImage.Error);
+                "Luma Player startup error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
         }
         catch { }
     }
