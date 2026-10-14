@@ -8,7 +8,7 @@ using System.Windows.Controls;
 using Button = System.Windows.Controls.Button;
 using System.Windows.Threading;
 
-namespace LumaPlayer;
+namespace NovaPlayer;
 
 public partial class MainWindow
 {
@@ -24,35 +24,29 @@ public partial class MainWindow
 
     private void ShowHome()
     {
-        // Keep Home and video stage mutually exclusive. No hidden background video playback.
         if (_player?.IsPlaying == true) _player.Pause();
+        NavigateChrome("home");
+        _filter = "All";
+        RefreshLibrary();
         HomeDashboard.Visibility = Visibility.Visible;
-        EmptyVisual.Visibility = Visibility.Collapsed;
-        VideoSurface.Visibility = Visibility.Collapsed;
-        MusicVisual.Visibility = Visibility.Collapsed;
     }
 
     private void ShowPlayer()
     {
-        HomeDashboard.Visibility = Visibility.Collapsed;
+        NavigateChrome("player");
         if (_current != null)
         {
             bool video = MediaCatalog.IsVideo(_current.Path);
             VideoSurface.Visibility = video ? Visibility.Visible : Visibility.Collapsed;
             MusicVisual.Visibility = video ? Visibility.Collapsed : Visibility.Visible;
-            EmptyVisual.Visibility = Visibility.Collapsed;
         }
         else if (_streamTitle != null)
         {
             VideoSurface.Visibility = Visibility.Visible;
-            MusicVisual.Visibility = Visibility.Collapsed;
-            EmptyVisual.Visibility = Visibility.Collapsed;
         }
         else
         {
             EmptyVisual.Visibility = Visibility.Visible;
-            VideoSurface.Visibility = Visibility.Collapsed;
-            MusicVisual.Visibility = Visibility.Collapsed;
         }
     }
 

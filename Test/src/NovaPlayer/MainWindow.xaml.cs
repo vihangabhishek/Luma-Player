@@ -20,12 +20,12 @@ using System.Windows.Media;
 using System.Windows.Threading;
 using MediaPlayer = LibVLCSharp.Shared.MediaPlayer;
 
-namespace LumaPlayer;
+namespace NovaPlayer;
 
 public partial class MainWindow : Window
 {
-    private readonly LibVLC _engine;
-    private readonly MediaPlayer _player;
+    private LibVLC _engine = null!;
+    private MediaPlayer _player = null!;
     private readonly DispatcherTimer _clock;
     private readonly PlayerState _state;
     private readonly ObservableCollection<MediaItem> _visible = new();
@@ -47,27 +47,11 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         _state = LocalStore.Load();
-        StartupDiagnostics.InitializeVlc();
-        _engine = new LibVLC("--avcodec-hw=any", "--no-video-title-show", "--file-caching=350", "--network-caching=1000");
-        _player = new MediaPlayer(_engine);
-        _player.Volume = Math.Clamp(_state.Volume, 0, 100);
-        VolumeSlider.Value = _player.Volume;
+        // Paint the application before the heavy VLC engine is loaded.
+        VolumeSlider.Value = Math.Clamp(_state.Volume, 0, 100);
         Playlist.ItemsSource = _visible;
         SearchBox.Text = "";
-        _player.EndReached += (_, _) => Dispatcher.BeginInvoke(new Action(NextAfterEnd));
-        _player.Playing += (_, _) => Dispatcher.BeginInvoke(new Action(() =>
-        {
-            // Some media reports duration only after playback starts; the tick handles resume.
-            if (_pendingResume > 0 && _player.Length > _pendingResume + 5_000)
-            {
-                _player.Time = _pendingResume;
-                _pendingResume = 0;
-            }
-            PlayPauseButton.Content = "Ⅱ  Pause";
-        }));
-        _player.Paused += (_, _) => Dispatcher.BeginInvoke(new Action(() => PlayPauseButton.Content = "▶  Play"));
-        _player.EncounteredError += (_, _) => Dispatcher.BeginInvoke(new Action(() => TopStatus.Text = "Unable to play this file — try another format."));
-        VideoSurface.Loaded += (_, _) => VideoSurface.MediaPlayer = _player;
+        VideoSurface.Loaded += (_, _) => { if (_player != null) VideoSurface.MediaPlayer = _player; };
         _clock = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(300) };
         _clock.Tick += (_, _) => RefreshPosition();
         _clock.Start();
@@ -79,13 +63,15 @@ public partial class MainWindow : Window
         ApplyTheme();
         RefreshLibrary();
         InitializeHome();
+        AutoFullscreenCheck.IsChecked = _state.AutoFullscreenVideo;
         AddHandler(Keyboard.KeyDownEvent, new KeyEventHandler(Window_KeyDown), true);
     }
 
     private void RefreshLibrary()
     {
         var query = SearchBox?.Text?.Trim() ?? "";
-        var queryable = _state.Library.Where(x => File.Exists(x.Path));
+        // Avoid synchronous disk checks while drawing the library.
+        var queryable = _state.Library.AsEnumerable();
         queryable = _filter switch
         {
             "Videos" => queryable.Where(x => MediaCatalog.IsVideo(x.Path)),
@@ -168,6 +154,7 @@ public partial class MainWindow : Window
     {
         var dialog = new UrlDialog { Owner = this };
         if (dialog.ShowDialog() != true || dialog.Url == null) return;
+        EnsurePlaybackEngine();
         SaveResume();
         _current = null;
         _streamTitle = dialog.Url;
@@ -190,6 +177,7 @@ public partial class MainWindow : Window
             MessageBox.Show(this,"This file was moved or deleted. Remove it from your library or add its new location.","File unavailable",MessageBoxButton.OK,MessageBoxImage.Information);
             return;
         }
+        EnsurePlaybackEngine();
         if (_current != item) SaveResume();
         _current = item; _streamTitle = null;
         _pendingResume = _state.ResumeEnabled ? Math.Max(0,item.ResumeMs) : 0;
@@ -208,6 +196,8 @@ public partial class MainWindow : Window
             using var media = new Media(_engine, new Uri(item.Path));
             bool ok = _player.Play(media);
             if (!ok) TopStatus.Text = "Unable to start playback";
+            else if (video && _state.AutoFullscreenVideo && !_compact)
+                Fullscreen_Click(this, new RoutedEventArgs());
         }
         catch (Exception ex) { MessageBox.Show(this,ex.Message,"Playback error",MessageBoxButton.OK,MessageBoxImage.Warning); }
         LocalStore.Save(_state);
@@ -263,6 +253,8 @@ public partial class MainWindow : Window
     private void Next_Click(object sender,RoutedEventArgs e)=>NextCore(false);
     private void PlayPause_Click(object sender,RoutedEventArgs e)
     {
+        try { EnsurePlaybackEngine(); }
+        catch (Exception ex) { StartupDiagnostics.ReportCrash(ex); return; }
         if (_player.Media == null) { if (_visible.Count>0) OpenMedia(_visible[0]); else OpenFiles_Click(sender,e); return; }
         if (_player.IsPlaying) _player.Pause(); else _player.Play();
     }
@@ -298,22 +290,51 @@ public partial class MainWindow : Window
     }
     private void Fullscreen_Click(object sender,RoutedEventArgs e)
     {
-        var outer=(Grid)AppRoot.Children[0];
-        if(!_compact)
+        if (!_compact && (_player == null || (_current == null && _streamTitle == null)
+            || (_current != null && !MediaCatalog.IsVideo(_current.Path)))) return;
+        var outer = ShellGrid;
+        if (!_compact)
         {
-            _previousWindowState=WindowState;_previousWindowStyle=WindowStyle;_previousResize=ResizeMode;
-            _previousLeft=outer.ColumnDefinitions[0].Width;_previousRight=outer.ColumnDefinitions[2].Width;
-            outer.ColumnDefinitions[0].Width=new GridLength(0);outer.ColumnDefinitions[2].Width=new GridLength(0);
-            WindowStyle=WindowStyle.None;ResizeMode=ResizeMode.NoResize;WindowState=WindowState.Maximized;
+            _previousWindowState = WindowState;
+            _previousWindowStyle = WindowStyle;
+            _previousResize = ResizeMode;
+            _previousLeft = outer.ColumnDefinitions[0].Width;
+            _previousRight = outer.ColumnDefinitions[2].Width;
+            NavPanel.Visibility = Visibility.Collapsed;
+            LibraryPanel.Visibility = Visibility.Collapsed;
+            TopHeader.Visibility = Visibility.Collapsed;
+            PlaybackTools.Visibility = Visibility.Collapsed;
+            TransportDock.Visibility = Visibility.Collapsed;
+            outer.ColumnDefinitions[0].Width = new GridLength(0);
+            outer.ColumnDefinitions[2].Width = new GridLength(0);
+            outer.Margin = new Thickness(0);
+            MainArea.Margin = new Thickness(0);
+            PlayerContainer.CornerRadius = new CornerRadius(0);
+            PlayerContainer.BorderThickness = new Thickness(0);
+            WindowStyle = WindowStyle.None;
+            ResizeMode = ResizeMode.NoResize;
+            WindowState = WindowState.Maximized;
         }
         else
         {
-            WindowState=WindowState.Normal;WindowStyle=_previousWindowStyle;ResizeMode=_previousResize;
-            outer.ColumnDefinitions[0].Width=_previousLeft;outer.ColumnDefinitions[2].Width=_previousRight;
-            WindowState=_previousWindowState;
+            WindowState = WindowState.Normal;
+            WindowStyle = _previousWindowStyle;
+            ResizeMode = _previousResize;
+            outer.ColumnDefinitions[0].Width = _previousLeft;
+            outer.ColumnDefinitions[2].Width = _previousRight;
+            outer.Margin = new Thickness(13, 12, 13, 0);
+            MainArea.Margin = new Thickness(13, 0);
+            PlayerContainer.CornerRadius = new CornerRadius(17);
+            PlayerContainer.BorderThickness = new Thickness(1);
+            NavPanel.Visibility = Visibility.Visible;
+            TopHeader.Visibility = Visibility.Visible;
+            WindowState = _previousWindowState;
+            NavigateChrome("player");
+            VideoSurface.Visibility = Visibility.Visible;
         }
-        _compact=!_compact;
+        _compact = !_compact;
     }
+
     private void Playlist_DoubleClick(object sender,MouseButtonEventArgs e)
     { if(Playlist.SelectedItem is MediaItem item)OpenMedia(item); }
     private void Playlist_SelectionChanged(object sender,SelectionChangedEventArgs e) { }
@@ -337,11 +358,12 @@ public partial class MainWindow : Window
             "Violet"=>("#E9E6FF","#CAC4FA"),"Ocean"=>("#D9F5FF","#B7DDEF"),
             "Rose"=>("#FFE7F1","#DCC7E9"),"Midnight"=>("#C2D4F0","#7996C8"),_=>("#EAF4FF","#C5DDFF")
         };
-        AppRoot.Background=new LinearGradientBrush((Color)ColorConverter.ConvertFromString(colors.Item1), (Color)ColorConverter.ConvertFromString(colors.Item2), 34);
+        AppRoot.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString(colors.Item1));
     }
     private void Window_KeyDown(object sender,System.Windows.Input.KeyEventArgs e)
     {
         if(Keyboard.FocusedElement is TextBox||Keyboard.FocusedElement is ComboBox)return;
+        if (_player == null && e.Key != Key.O) return;
         switch(e.Key)
         {
             case Key.Space: PlayPause_Click(this,new RoutedEventArgs());e.Handled=true;break;
@@ -359,7 +381,7 @@ public partial class MainWindow : Window
     { if(e.Data.GetDataPresent(DataFormats.FileDrop) && e.Data.GetData(DataFormats.FileDrop) is string[] files)AddMediaPaths(files,true); }
     private void Window_Closing(object? sender,CancelEventArgs e)
     {
-        try { SaveResume();_state.Volume=(int)VolumeSlider.Value;LocalStore.Save(_state);_clock.Stop();_player.Stop();VideoSurface.MediaPlayer=null;_player.Dispose();_engine.Dispose(); }
+        try { SaveResume();_state.Volume=(int)VolumeSlider.Value;LocalStore.Save(_state);_clock.Stop();if(_player!=null){_player.Stop();VideoSurface.MediaPlayer=null;_player.Dispose();_engine.Dispose();} }
         catch { /* shutdown best effort */ }
     }
 }

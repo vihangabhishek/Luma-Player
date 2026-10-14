@@ -1,7 +1,7 @@
 using System.IO;
 using System.Text.Json.Serialization;
 
-namespace LumaPlayer;
+namespace NovaPlayer;
 
 public sealed class MediaItem
 {
@@ -22,6 +22,7 @@ public sealed class PlayerState
     public string Repeat { get; set; } = "All";
     public bool Shuffle { get; set; }
     public bool ResumeEnabled { get; set; } = true;
+    public bool AutoFullscreenVideo { get; set; } = true;
 }
 
 public static class MediaCatalog

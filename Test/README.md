@@ -1,109 +1,69 @@
-## Luma Player v1.1 — Home videos & in-app updates
+<p align="center"><img src="assets/NovaPlayer.png" alt="Nova Player" width="100"></p>
 
-**Home:** The default Home screen automatically discovers videos from your Windows **Videos** folder, the top level of **Downloads**, and media you already added to the Luma library. It never scans the whole drive. A background worker loads video preview frames through Windows Explorer's thumbnail providers where available, so some codecs may display a play icon instead of a thumbnail. Click a preview to play. **Refresh** scans again. **Open files** and **Add folder** allow other locations.
+# Nova Player
+**Your media. Beautifully simple.**
 
-**Updates inside the app:** Use **Check for updates** on the left sidebar. If a newer official GitHub release exists, choose **Download & install**, confirm, then wait for the SHA-256-verified download. A second confirmation opens the normal installer and closes the player. Updates are never installed silently, and release assets without a GitHub SHA-256 digest are rejected. Internet is required only for checking/downloading updates; playback and local previews work offline.
+A minimal, offline-first **Windows 10/11 music and video player**. Native Windows app, LibVLC engine, soft-blue design, fast loading and a movie-first fullscreen experience.
 
-**Important:** If you currently use v1.0.1 or earlier, you must manually install **v1.1.0 once** to gain the in-app updater. These are unsigned technical preview installers; Microsoft SmartScreen can warn and you should **not** disable security software. Windows CI includes native LibVLC and WPF application startup smoke tests, but a real Windows 11 installation and playback test is still needed.
+[**Download Nova Player v1.2.0 — Windows Setup.exe**](https://github.com/vihangabhishek/Luma-Player/releases/tag/v1.2.0-preview)
 
+> **Preview:** Unsigned Windows installer. Automated Windows compilation, LibVLC startup and WPF home-screen smoke tests are required before each published build. Media-playback performance, thumbnails and the upgrade flow should be checked on a real Windows PC before production use. Never disable Windows Defender.
 
----
+## Highlights
 
-<div align="center">
-  <img src="assets/LumaPlayer.png" alt="Luma Player logo" width="116" />
-
-  # Luma Player
-  **Your media. Beautifully played.**
-
-  A blue-glass-inspired, offline-first Windows 11 **music & video player**, powered by the VideoLAN LibVLC playback engine.
-
-  ![Windows](https://img.shields.io/badge/Windows-11%20%7C%2010-blue) ![.NET](https://img.shields.io/badge/.NET-8-512BD4) ![Build](https://img.shields.io/badge/status-technical%20preview-orange) ![License](https://img.shields.io/badge/code-MIT-green)
-</div>
-
-> ⚠️ **Technical preview:** Source is prepared, but the actual Windows installer and end-to-end Windows performance have not been tested yet. Do not call it stable until the release checklist passes. Installer is not code-signed.
-
-## ✨ Highlights
-
-| Feature | Status |
+| Feature | Details |
 | --- | --- |
-| Modern glass-inspired interface, five presets, blue by default | Included |
-| Native Windows WPF app (no browser window, no PowerShell launcher) | Included |
-| Audio & video powered by LibVLC (MP4, MKV, MP3, FLAC, etc.) | Included, codec dependent |
-| GPU hardware decoding request via LibVLC | Included, hardware/driver dependent |
-| Open files, scan folders, drag and drop | Included |
-| HTTP/HTTPS streams (not an internet discovery service) | Included |
-| Play/pause, seek, next/previous, 10-second skips | Included |
-| Volume/mute, playback speed 0.5×–2×, aspect ratios | Included |
-| External SRT/ASS/VTT subtitle loading | Included |
-| Screenshots of a video as PNG | Included |
-| Filterable library, search, Favorites, recently played | Included |
-| Shuffle and Repeat Off / All / One | Included |
-| Remember playback positions and reopen local library | Included |
-| Fullscreen and keyboard shortcuts | Included |
-| Windows Lock Screen / System Media Transport Controls (SMTC) | **Not yet implemented** |
-| In-app audio equalizer, HDR tone mapping controls, album-art fetching, casting, gapless playback | Planned, not promised |
+| Minimal navigation | Home, Music, Videos, Settings, Updates, About |
+| Video playback | LibVLC, MP4/MKV/AVI/WebM and other supported formats |
+| Audio | MP3/FLAC/WAV and more (codec dependent) |
+| Fullscreen movies | **On by default** for local videos; configurable in **Settings**; Esc to exit |
+| Fast window startup | Deferred initialization of LibVLC until after first UI paint |
+| Home gallery | Local video cards from Videos, top-level Downloads and imported library |
+| Local thumbnails | Windows Explorer thumbnail system; graceful fallback for unavailable codecs |
+| Library | Import files and folders, local search, favorites, shuffle/repeat, playback resume |
+| Player | Subtitles, snapshots, seeking, 10-second skips, playback speed and aspect ratio |
+| Themes | Blue, Violet, Ocean, Rose and Midnight |
+| Updates | Manual in-app check, SHA-256 verified download and confirmation-based Windows setup |
+| Privacy | No account needed, no media uploaded |
 
-**Quality:** LibVLC supports hardware decoding where possible; smooth 1080p, 4K or HDR playback depends on your CPU/GPU, file codec, GPU drivers and storage throughput. No player can guarantee lag-free 4K on every PC. Glass effects are used outside the video render surface to help avoid impairing decoding/rendering. Native codec support comes from LibVLC; all VideoLAN and codec/patent licenses remain applicable.
+## Requirements
 
-## 🖥️ Requirements
+- Windows 10/11, x64
+- Compatible GPU and drivers for hardware decoding (performance varies by hardware and codec)
+- Storage for an approximately 125 MB Setup.exe and an unpacked self-contained application
+- Internet only for optional network streams and updates
 
-- Windows 11 x64 (Windows 10 x64 may work, not yet certified).
-- Recommended: modern GPU/updated graphics drivers for high-resolution playback.
-- Internet only for downloading/installing the application and when opening your own streaming URL. Local playback works offline.
-- Installer bundles a self-contained .NET runtime and native LibVLC libraries: its file size will be larger than a simple note app.
+## Installation / Updating from Luma Player
 
-## 📦 Install from GitHub Actions
+1. Download **Nova-Player-Setup-1.2.0.exe** from the [v1.2.0-preview release](https://github.com/vihangabhishek/Luma-Player/releases/tag/v1.2.0-preview).
+2. Close the previous Luma Player before installing Nova Player.
+3. Run the normal Windows setup wizard.
+4. Your previous player library/settings are read from the old **LumaPlayer** settings path on first launch when there isn't a Nova settings file; the original stays untouched.
+5. Open **Settings** to enable/disable default video fullscreen. Use **Updates** to check for new versions.
 
-1. Create a new **public** GitHub repository named `Luma-Player` (separate from `Luma-Diary`).
-2. Upload the **contents** of this source folder to the repository root, including hidden `.github/workflows/windows.yml`.
-3. Go to **Actions → Build Windows Installer → Run workflow → main**.
-4. After a successful build, open the workflow run and download the `Luma-Player-Windows-Setup` artifact.
-5. Extract the ZIP and run `Luma-Player-Setup-1.0.0.exe`.
+The original **Luma-Player** GitHub repository name remains unchanged during the app rebrand, preserving compatibility with the previous Luma in-app updater. Previous v1.1 updater users can upgrade via an identical compatibility installer named **Luma-Player-Setup-1.2.0.exe**.
 
-The installer uses **Inno Setup** (ordinary wizard, Start Menu/Desktop shortcuts and Windows uninstall), not a PowerShell-based launcher. If CI fails, review the build logs. **An unsigned EXE can trigger SmartScreen**; do not disable Defender to bypass it.
-
-## 🛠️ Build locally on Windows
-
-Install Visual Studio 2022 with the .NET desktop workload or .NET 8 SDK, then run:
+## Build from source
 
 ```powershell
-dotnet restore src/LumaPlayer/LumaPlayer.csproj --runtime win-x64
-dotnet publish src/LumaPlayer/LumaPlayer.csproj -c Release -r win-x64 --self-contained true -o publish
+dotnet restore Test/src/NovaPlayer/NovaPlayer.csproj --runtime win-x64
+dotnet publish Test/src/NovaPlayer/NovaPlayer.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=false -o Test/publish
 ```
 
-For an installer, install [Inno Setup 6](https://jrsoftware.org/isinfo.php) and compile `installer/LumaPlayer.iss`. The app icon and source assets are located under `assets/`.
+This builds **NovaPlayer.exe**. The Windows GitHub Actions workflow packages it using Inno Setup 6; see `.github/workflows/windows.yml` and `Test/installer/NovaPlayer.iss`.
 
-## ⌨️ Shortcuts
+## Support and limitations
 
-| Key | Action |
-| --- | --- |
-| Space | Play / Pause |
-| Left / Right | Seek back / forward 5 seconds |
-| Up / Down | Volume ±5 |
-| F11 | Fullscreen |
-| Esc | Exit fullscreen |
-| Ctrl+O | Open media files |
-| Ctrl+N | Next item |
+- Not all files have Windows Explorer thumbnails; cards use a fallback play icon.
+- Fullscreen controls use F11 and Esc; some GPU/driver combinations may require testing.
+- Windows lock-screen media transport controls are **not** yet implemented.
+- No silent or background updater: updates require user action, valid published SHA-256 digest and confirmation.
+- Installer is not digitally signed. Microsoft SmartScreen may warn. Never bypass security software.
+- To report startup crashes, check `%LOCALAPPDATA%\NovaPlayer\logs\startup.log` (remove private paths before sharing).
 
-Use double-click to play a library item. In the right library panel, single-click an item to favorite or remove it.
+## License and third-party notices
 
-## 🛡️ Privacy
+See [MIT license](Test/LICENSE) and [third-party licenses](Test/THIRD_PARTY.md). LibVLC and LibVLCSharp have their own applicable notices.
 
-No mandatory account, telemetry or cloud sync. Local library history (paths and playback positions) lives at `%APPDATA%\LumaPlayer\state.json` and is **not encrypted**. Opening a streaming URL sends requests to that server. The app doesn't upload your local files. See [SECURITY.md](SECURITY.md).
-
-## 🎵 Windows lock-screen controls
-
-The Windows lock-screen/Quick Settings media player uses **System Media Transport Controls (SMTC)**. Microsoft's `Windows.Media.Playback.MediaPlayer` gets automatic integration, but this app uses **LibVLC** for broad codec support. Manual SMTC integration must be implemented and tested separately; **v1.0 does not yet display lock-screen controls**. See [Microsoft's SMTC guide](https://learn.microsoft.com/en-us/windows/apps/develop/media-playback/integrate-with-systemmediatransportcontrols).
-
-## 🚀 Roadmap
-
-1. Confirm Windows 11 install, full-screen behavior, subtitle loading, real 1080p/4K playback and GPU usage.
-2. Implement SMTC/lock-screen playback controls and media metadata, with Windows integration tests.
-3. Add audio equalizer, thumbnail art, track menus and additional advanced controls.
-4. Code signing, official releases and secure update notifications.
-
-See [testing checklist](docs/TESTING.md), [Sinhala GitHub guide](docs/GITHUB_GUIDE_SI.md) and [changelog](CHANGELOG.md).
-
-## 🧾 License & Credits
-
-Luma Player application source is MIT licensed (see LICENSE). Playback uses [LibVLCSharp](https://github.com/videolan/libvlcsharp) and [VideoLAN LibVLC](https://www.videolan.org/vlc/libvlc.html), with separate copyleft license obligations. Read the notices in [THIRD_PARTY.md](THIRD_PARTY.md) before distributing binaries. Not affiliated with VideoLAN/VLC.
+---
+Nova Player is the rebranded continuation of Luma Player.

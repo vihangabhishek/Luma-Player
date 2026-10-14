@@ -7,7 +7,7 @@ using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media.Imaging;
 
-namespace LumaPlayer;
+namespace NovaPlayer;
 
 public sealed class VideoPreviewItem
 {

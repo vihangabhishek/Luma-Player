@@ -1,6 +1,6 @@
 using MessageBox = System.Windows.MessageBox;
 using System.Windows;
-namespace LumaPlayer;
+namespace NovaPlayer;
 public partial class UrlDialog : Window
 {
     public string? Url { get; private set; }

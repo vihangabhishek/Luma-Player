@@ -2,7 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Threading;
 
-namespace LumaPlayer;
+namespace NovaPlayer;
 
 public partial class App : System.Windows.Application
 {
@@ -30,7 +30,7 @@ public partial class App : System.Windows.Application
             return;
         }
         bool uiSmoke = Array.Exists(e.Args, arg => arg.Equals("--ui-smoke-test", StringComparison.OrdinalIgnoreCase));
-        StartupDiagnostics.Write(uiSmoke ? "Starting Windows UI smoke test." : "Launching Luma Player window.");
+        StartupDiagnostics.Write(uiSmoke ? "Starting Windows UI smoke test." : "Launching Nova Player window.");
         base.OnStartup(e);
         if (uiSmoke)
         {

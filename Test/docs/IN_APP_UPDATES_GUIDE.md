@@ -1,28 +1,13 @@
-# Luma Player v1.1.0 — Windows Update Guide
+# Nova Player — Update Guide
 
-## New Home page
+Nova Player v1.2.0 can be installed by running `Nova-Player-Setup-1.2.0.exe` from the official [release](https://github.com/vihangabhishek/Luma-Player/releases/tag/v1.2.0-preview).
 
-The Home tab searches only your own Videos folder, top level of Downloads, and videos already in your player library. You can add other folders through **Add folder**. Video thumbnails use the Windows Explorer thumbnail providers, so some files may show a fallback ▶ icon instead of a scene preview. Playback remains offline through LibVLC.
+**In the app**: Open **Updates → Check for updates**. If GitHub provides a newer version and a valid SHA-256 digest, select **Download & install**, approve the download, then approve opening the standard installer. Nova closes before installation. Nothing downloads or installs silently.
 
-## Updating inside the application
+**Upgrading from Luma Player**: The original repository URL stays `vihangabhishek/Luma-Player`. Its prior v1.1 update code recognizes the compatibility file `Luma-Player-Setup-1.2.0.exe`. Both setup files are identical. Existing Luma library metadata is read into Nova when Nova has no data yet, and the old state is retained.
 
-1. Install v1.1.0 once using the release Setup.exe (older versions cannot update themselves).
-2. Open Luma Player and click **Check for updates** in the left sidebar when internet is available.
-3. If a newer official release exists, click **Download & install**.
-4. Approve the download. Luma Player verifies the downloaded installer against its SHA-256 digest published by GitHub.
-5. Approve the final confirmation. The player closes and opens the standard Windows installer wizard.
-6. Complete the wizard, then relaunch Luma Player.
+**Movies:** Video playback opens fullscreen by default; turn this off in **Settings**. Press **Esc** to leave fullscreen.
 
-The app does not auto-download or silently install updates. Updates without a verified SHA-256 digest are rejected. SmartScreen may warn about the unsigned preview installer; do not disable Windows Defender.
+**Privacy:** Local videos remain on your PC. Internet is used only when explicitly checking/downloading updates or opening a network media URL.
 
-## Test checklist for Windows 11
-
-- Launch Luma Player and verify Home appears with no startup errors.
-- Verify local Videos files appear; wait a little for thumbnails (where supported).
-- Click a video card and play/pause the video.
-- Add a folder not in Videos/Downloads and confirm newly imported videos appear on Home.
-- Run **Check for updates**. If v1.1.0 is the newest release, it should say up to date.
-- Verify themes and the music library still work.
-- Check for updates after a future release to test download and install. Back up any library metadata before upgrading.
-
-This is a technical preview. Only startup has been exercised automatically on a hosted Windows machine, not full playback and upgrade installation on a physical end-user Windows 11 PC.
+**Caution:** Preview builds are unsigned. Never disable Windows Defender to install software. Full playback and installer upgrades require user testing on actual Windows PCs.

@@ -1,4 +1,4 @@
-name: Build Luma Player Windows Installer
+name: Build Nova Player Windows Installer
 
 on:
   workflow_dispatch:
@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - 'Test/**'
+      - 'README.md'
       - '.github/workflows/windows.yml'
 
 permissions:
@@ -13,9 +14,12 @@ permissions:
 
 jobs:
   build-windows:
+    name: Test and Package Nova Player
     runs-on: windows-latest
+    timeout-minutes: 40
+
     steps:
-      - name: Checkout
+      - name: Checkout source
         uses: actions/checkout@v4
 
       - name: Install .NET 8
@@ -23,72 +27,90 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      - name: Restore WPF and LibVLC dependencies
-        run: dotnet restore Test/src/LumaPlayer/LumaPlayer.csproj --runtime win-x64
+      - name: Restore native playback dependencies
+        run: dotnet restore Test/src/NovaPlayer/NovaPlayer.csproj --runtime win-x64
 
-      - name: Build self-contained Windows player
-        run: dotnet publish Test/src/LumaPlayer/LumaPlayer.csproj -c Release -r win-x64 --no-restore --self-contained true -p:PublishSingleFile=false -o Test/publish
+      - name: Build self-contained Nova Player
+        run: dotnet publish Test/src/NovaPlayer/NovaPlayer.csproj -c Release -r win-x64 --no-restore --self-contained true -p:PublishSingleFile=false -o Test/publish
 
-      - name: Verify app and VLC native engine
+      - name: Verify executable and playback engine
         shell: pwsh
         run: |
-          if (!(Test-Path 'Test/publish/LumaPlayer.exe')) { throw 'LumaPlayer.exe was not generated' }
+          if (!(Test-Path 'Test/publish/NovaPlayer.exe')) { throw 'NovaPlayer.exe was not generated' }
           $native = @(Get-ChildItem 'Test/publish' -Filter libvlc.dll -Recurse -File)
-          if ($native.Count -eq 0) { throw 'LibVLC engine missing from the published player' }
+          if ($native.Count -eq 0) { throw 'LibVLC engine is missing from the Windows build' }
 
-      - name: Run real LibVLC startup smoke test
+      - name: Test native VLC engine startup
         shell: pwsh
         run: |
-          $player = (Resolve-Path 'Test/publish/LumaPlayer.exe').Path
-          $process = Start-Process -FilePath $player -ArgumentList '--diagnose' -Wait -PassThru
-          $log = Join-Path $env:LOCALAPPDATA 'LumaPlayer/logs/startup.log'
-          if (Test-Path $log) { Get-Content $log -Tail 70 }
-          if ($process.ExitCode -ne 0) { throw "LibVLC startup failed with exit code $($process.ExitCode)" }
+          $exe = (Resolve-Path 'Test/publish/NovaPlayer.exe').Path
+          $test = Start-Process -FilePath $exe -ArgumentList '--diagnose' -PassThru -Wait
+          $log = Join-Path $env:LOCALAPPDATA 'NovaPlayer/logs/startup.log'
+          if (Test-Path $log) { Get-Content $log -Tail 40 }
+          if ($test.ExitCode -ne 0) { throw "Native VLC startup test failed: $($test.ExitCode)" }
 
-      - name: Launch WPF app home screen (Windows smoke test)
+      - name: Test actual WPF window startup
         shell: pwsh
         run: |
-          $player = (Resolve-Path 'Test/publish/LumaPlayer.exe').Path
-          $process = Start-Process -FilePath $player -ArgumentList '--ui-smoke-test' -Wait -PassThru
-          $log = Join-Path $env:LOCALAPPDATA 'LumaPlayer/logs/startup.log'
-          if (Test-Path $log) { Get-Content $log -Tail 35 }
-          if ($process.ExitCode -ne 0) { throw "Windows WPF home screen failed startup, exit $($process.ExitCode)" }
+          $exe = (Resolve-Path 'Test/publish/NovaPlayer.exe').Path
+          $test = Start-Process -FilePath $exe -ArgumentList '--ui-smoke-test' -PassThru -Wait
+          $log = Join-Path $env:LOCALAPPDATA 'NovaPlayer/logs/startup.log'
+          if (Test-Path $log) { Get-Content $log -Tail 40 }
+          if ($test.ExitCode -ne 0) { throw "Nova UI failed to start: $($test.ExitCode)" }
 
       - name: Install Inno Setup
         shell: pwsh
         run: |
           $iscc = 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe'
           if (!(Test-Path $iscc)) { choco install innosetup -y --no-progress }
-          if (!(Test-Path $iscc)) { throw 'Inno Setup was not installed' }
+          if (!(Test-Path $iscc)) { throw 'Inno Setup missing' }
 
-      - name: Compile Setup.exe
+      - name: Compile Nova Windows installer
         shell: pwsh
         run: |
-          & 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe' 'Test\installer\LumaPlayer.iss'
+          & 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe' 'Test\installer\NovaPlayer.iss'
+          if ($LASTEXITCODE -ne 0) { throw "Inno Setup failed" }
+          if (!(Test-Path 'Test/dist/Nova-Player-Setup-1.2.0.exe')) { throw 'Nova Setup.exe missing' }
 
-      - name: Upload Windows installer
+      - name: Preserve previous player updater compatibility
+        shell: pwsh
+        run: |
+          # Previous Luma Player v1.1 checks for this exact legacy filename.
+          # Both assets contain the same Nova Player v1.2 installer.
+          Copy-Item 'Test/dist/Nova-Player-Setup-1.2.0.exe' 'Test/dist/Luma-Player-Setup-1.2.0.exe'
+
+      - name: Upload Windows installer artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Luma-Player-Windows-Setup
-          path: Test/dist/*.exe
+          name: Nova-Player-Windows-Setup-1.2.0
+          path: Test/dist/Nova-Player-Setup-1.2.0.exe
           if-no-files-found: error
           retention-days: 30
 
-      - name: Publish test release
-        if: github.event_name == 'push' && contains(github.event.head_commit.message, '[publish-1.1]')
+      - name: Publish Nova Player preview release
+        if: github.event_name == 'push' && contains(github.event.head_commit.message, '[publish-nova]')
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.1.0-preview
-          name: 'Luma Player v1.1.0 — Home Video Previews & In-App Updates (Test Release)'
+          tag_name: v1.2.0-preview
+          name: 'Nova Player v1.2.0 — Minimal UI & Fullscreen Movies (Preview)'
           prerelease: true
           make_latest: false
           body: |
-            Luma Player v1.1 adds offline Home video discovery and Explorer-based video preview cards, plus manual in-app update checking and SHA-256 verified downloads from GitHub Releases.
-            Scans the current user's Videos folder and top-level Downloads, and shows any imported library videos. Other folders can be added manually.
-            Installers remain unsigned preview builds: Windows SmartScreen may warn. Do not disable antivirus.
-            Windows CI checks include native VLC startup and WPF home screen smoke test, but physical PC testing is still recommended.
-            This is an unsigned technical preview. The installer has not been tested end-to-end on a physical Windows 11 PC.
-            Windows lock-screen media controls are not implemented yet.
-            Performance and hardware acceleration depend on the GPU, codec, video, and drivers.
-            Do not disable Microsoft Defender for installation; report any suspicious detections.
-          files: Test/dist/*.exe
+            Nova Player is the new brand for Luma Player. Simplified Home, Music,
+            Videos, Settings, Updates and About navigation. Video playback enters
+            immersive fullscreen by default; turn this off in Settings.
+            Less expensive UI effects and deferred VLC initialization speed up
+            initial window presentation. Library settings from Luma Player are
+            imported once without deleting the original.
+
+            Nova-Player-Setup-1.2.0.exe is the new installer.
+            Luma-Player-Setup-1.2.0.exe is an identical compatibility copy for
+            users updating through the previous Luma Player v1.1 updater.
+
+            GitHub CI validates compilation, VLC startup, and WPF window startup.
+            This is an unsigned preview; it has NOT been fully tested on physical
+            Windows hardware for every codec or upgrade path. Do not disable antivirus.
+            The GitHub repository URL remains /Luma-Player for compatibility.
+          files: |
+            Test/dist/Nova-Player-Setup-1.2.0.exe
+            Test/dist/Luma-Player-Setup-1.2.0.exe

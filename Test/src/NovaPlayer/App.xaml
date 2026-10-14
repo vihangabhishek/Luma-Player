@@ -1,4 +1,4 @@
-<Application x:Class="LumaPlayer.App" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+<Application x:Class="NovaPlayer.App" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" StartupUri="MainWindow.xaml">
   <Application.Resources>
     <SolidColorBrush x:Key="Ink" Color="#17345E"/>

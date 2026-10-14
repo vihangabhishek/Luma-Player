@@ -3,7 +3,7 @@ using MessageBox = System.Windows.MessageBox;
 using System.ComponentModel;
 using System.Windows;
 
-namespace LumaPlayer;
+namespace NovaPlayer;
 
 public partial class MainWindow
 {
@@ -43,10 +43,10 @@ public partial class MainWindow
     {
         if (_updating || _availableUpdate is not { } update) return;
         if (MessageBox.Show(this,
-            "Download Luma Player v" + update.Version + " from the official GitHub release?\n\n" +
+            "Download Nova Player v" + update.Version + " from the official GitHub release?\n\n" +
             "The file's SHA-256 hash will be verified before opening the normal Windows installer.\n\n" +
             "Note: This is an unsigned preview and Windows SmartScreen may display a warning. Never disable Defender.",
-            "Update Luma Player", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
+            "Update Nova Player", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
 
         _updating = true;
         InstallUpdateButton.IsEnabled = false;
@@ -64,7 +64,7 @@ public partial class MainWindow
             string file = await PlayerUpdater.DownloadVerifiedAsync(update, progress);
             UpdateStatus.Text = "Download verified. Ready for installation.";
             if (MessageBox.Show(this,
-                "Verified update downloaded. Open the setup wizard and close Luma Player?\n" +
+                "Verified update downloaded. Open the setup wizard and close Nova Player?\n" +
                 "The installer will guide you through the update.",
                 "Install update", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
             {

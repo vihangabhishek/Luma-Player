@@ -3,14 +3,14 @@ using System.IO;
 using System.Windows;
 using LibVLCSharp.Shared;
 
-namespace LumaPlayer;
+namespace NovaPlayer;
 
 /// <summary>Local-only startup diagnostics. Never uploads logs or media details.</summary>
 internal static class StartupDiagnostics
 {
     internal static readonly string LogDirectory = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "LumaPlayer", "logs");
+        "NovaPlayer", "logs");
     internal static readonly string LogPath = Path.Combine(LogDirectory, "startup.log");
 
     internal static void Write(string message, Exception? exception = null)
@@ -64,11 +64,11 @@ internal static class StartupDiagnostics
         try
         {
             System.Windows.MessageBox.Show(
-                "Luma Player could not start correctly.\n\n" +
+                "Nova Player could not start correctly.\n\n" +
                 ex.GetType().Name + ": " + ex.Message + "\n\n" +
                 "Diagnostic log (stored on your PC):\n" + LogPath + "\n\n" +
                 "Please report this error on the GitHub Issues page. The log is NOT uploaded automatically.",
-                "Luma Player startup error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+                "Nova Player startup error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
         }
         catch { }
     }
