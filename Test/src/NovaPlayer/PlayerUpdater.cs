@@ -23,7 +23,7 @@ internal static class PlayerUpdater
     private static HttpClient CreateClient()
     {
         var http = new HttpClient(new HttpClientHandler { AllowAutoRedirect = true });
-        http.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("NovaPlayer", "1.1"));
+        http.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("NovaPlayer", "1.2.1"));
         http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
         return http;
     }
