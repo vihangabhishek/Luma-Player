@@ -1,5 +1,5 @@
 #define AppName "Luma Player"
-#define AppVersion "1.0.1"
+#define AppVersion "1.1.0"
 [Setup]
 AppId={{4AA28F60-3729-4AD0-9B12-5E3D480A3319}
 AppName={#AppName}
@@ -9,7 +9,7 @@ AppPublisherURL=https://github.com/
 DefaultDirName={localappdata}\Programs\Luma Player
 DefaultGroupName=Luma Player
 OutputDir=..\dist
-OutputBaseFilename=Luma-Player-Setup-1.0.1
+OutputBaseFilename=Luma-Player-Setup-1.1.0
 SetupIconFile=..\assets\LumaPlayer.ico
 UninstallDisplayIcon={app}\LumaPlayer.exe
 PrivilegesRequired=lowest
