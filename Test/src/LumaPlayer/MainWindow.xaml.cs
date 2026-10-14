@@ -325,7 +325,7 @@ public partial class MainWindow : Window
         };
         AppRoot.Background=new LinearGradientBrush((Color)ColorConverter.ConvertFromString(colors.Item1), (Color)ColorConverter.ConvertFromString(colors.Item2), 34);
     }
-    private void Window_KeyDown(object sender,KeyEventArgs e)
+    private void Window_KeyDown(object sender,System.Windows.Input.KeyEventArgs e)
     {
         if(Keyboard.FocusedElement is TextBox||Keyboard.FocusedElement is ComboBox)return;
         switch(e.Key)
@@ -341,7 +341,7 @@ public partial class MainWindow : Window
             case Key.N when Keyboard.Modifiers==ModifierKeys.Control: NextCore(false);e.Handled=true;break;
         }
     }
-    private void Window_Drop(object sender,DragEventArgs e)
+    private void Window_Drop(object sender,System.Windows.DragEventArgs e)
     { if(e.Data.GetDataPresent(DataFormats.FileDrop) && e.Data.GetData(DataFormats.FileDrop) is string[] files)AddMediaPaths(files,true); }
     private void Window_Closing(object? sender,CancelEventArgs e)
     {
