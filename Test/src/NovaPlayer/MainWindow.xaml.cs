@@ -38,6 +38,7 @@ public partial class MainWindow : Window
     private long _pendingResume;
     private long _lastResumeSave;
     private bool _compact;
+    private bool _nativeMediaOpening;
     private readonly Random _random = new();
     private WindowState _previousWindowState;
     private WindowStyle _previousWindowStyle;
@@ -81,7 +82,7 @@ public partial class MainWindow : Window
             "Recent" => queryable.Where(x => x.LastPlayedUtc != default).OrderByDescending(x => x.LastPlayedUtc),
             _ => queryable
         };
-        var result = queryable.Where(x => x.Title.Contains(query, StringComparison.OrdinalIgnoreCase)).ToArray();
+        var result = queryable.Where(x => x.Title.Contains(query, StringComparison.OrdinalIgnoreCase)).Take(650).ToArray();
         var selected = Playlist.SelectedItem as MediaItem;
         _visible.Clear();
         foreach (var item in result) _visible.Add(item);
@@ -173,15 +174,17 @@ public partial class MainWindow : Window
             {
                 if (request != _openGeneration) return;
                 // Network media opening must not freeze the WPF message queue.
+                _nativeMediaOpening = true;
                 bool started = await Task.Run(() =>
                 {
                     using var media = new Media(_engine, new Uri(dialog.Url));
                     return _player.Play(media);
                 });
+                _nativeMediaOpening = false;
                 if (request == _openGeneration)
                     TopStatus.Text = started ? "Playing network stream" : "Stream could not be opened";
             }
-            finally { _openGate.Release(); }
+            finally { _nativeMediaOpening = false; _openGate.Release(); }
         }
         catch (Exception ex)
         {
@@ -221,11 +224,13 @@ public partial class MainWindow : Window
             try
             {
                 if (_playbackShuttingDown || request != _openGeneration) return;
+                _nativeMediaOpening = true;
                 bool started = await Task.Run(() =>
                 {
                     using var media = new Media(_engine, new Uri(item.Path));
                     return _player.Play(media);
                 });
+                _nativeMediaOpening = false;
                 if (_playbackShuttingDown || request != _openGeneration) return;
                 if (!started)
                 {
@@ -238,7 +243,7 @@ public partial class MainWindow : Window
                         Fullscreen_Click(this, new RoutedEventArgs());
                 }
             }
-            finally { _openGate.Release(); }
+            finally { _nativeMediaOpening = false; _openGate.Release(); }
 
             // Persistence is queued off-thread; update list without rescanning files.
             LocalStore.Save(_state);
@@ -254,7 +259,7 @@ public partial class MainWindow : Window
 
     private void RefreshPosition()
     {
-        if (_player == null || _seeking) return;
+        if (_player == null || _seeking || _nativeMediaOpening || _playbackShuttingDown) return;
         long time = Math.Max(0, _player.Time), length = Math.Max(0, _player.Length);
         if (_pendingResume > 0 && length > _pendingResume + 5_000)
         {
