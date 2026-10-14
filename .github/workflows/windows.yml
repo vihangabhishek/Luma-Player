@@ -1,0 +1,73 @@
+name: Build Luma Player Windows Installer
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'Test/**'
+      - '.github/workflows/windows.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore WPF and LibVLC dependencies
+        run: dotnet restore Test/src/LumaPlayer/LumaPlayer.csproj --runtime win-x64
+
+      - name: Build self-contained Windows player
+        run: dotnet publish Test/src/LumaPlayer/LumaPlayer.csproj -c Release -r win-x64 --no-restore --self-contained true -p:PublishSingleFile=false -o Test/publish
+
+      - name: Verify app and VLC native engine
+        shell: pwsh
+        run: |
+          if (!(Test-Path 'Test/publish/LumaPlayer.exe')) { throw 'LumaPlayer.exe was not generated' }
+          $native = @(Get-ChildItem 'Test/publish' -Filter libvlc.dll -Recurse -File)
+          if ($native.Count -eq 0) { throw 'LibVLC engine missing from the published player' }
+
+      - name: Install Inno Setup
+        shell: pwsh
+        run: |
+          $iscc = 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe'
+          if (!(Test-Path $iscc)) { choco install innosetup -y --no-progress }
+          if (!(Test-Path $iscc)) { throw 'Inno Setup was not installed' }
+
+      - name: Compile Setup.exe
+        shell: pwsh
+        run: |
+          & 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe' 'Test\installer\LumaPlayer.iss'
+
+      - name: Upload Windows installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: Luma-Player-Windows-Setup
+          path: Test/dist/*.exe
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish test release
+        if: github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.0-preview
+          name: 'Luma Player v1.0.0 — Windows Test Release'
+          prerelease: true
+          make_latest: false
+          body: |
+            Luma Player is a Windows 11 music and video player powered by LibVLC.
+            This is an unsigned technical preview. The installer has not been tested end-to-end on a physical Windows 11 PC.
+            Windows lock-screen media controls are not implemented yet.
+            Performance and hardware acceleration depend on the GPU, codec, video, and drivers.
+            Do not disable Microsoft Defender for installation; report any suspicious detections.
+          files: Test/dist/*.exe
