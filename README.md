@@ -1,3 +1,12 @@
+## Nova Player v1.2.1 — Performance & Responsiveness
+
+This is **one full Windows installer** (not Lite/Full editions). The app now loads LibVLC only when media plays, off the UI thread. Media opening and pause/resume run without blocking the WPF window. Position updates are less frequent, preview thumbnails and visible library items are bounded, and settings writes are queued in the background. Full VLC codec files remain bundled, so the installer is still relatively large.
+
+**Update from v1.2.0:** Open **Updates → Check for updates → Download & install**, confirm the verified download, finish the Windows setup wizard, and reopen Nova Player. Saved library data is preserved. This unsigned preview may show a SmartScreen warning; do not disable security protection.
+
+**Testing:** Windows CI validates native playback engine initialization and WPF startup, not every video format and GPU. Please report repeatable freezes with the local startup log after removing any private paths.
+
+---
 <p align="center"><img src="Test/assets/NovaPlayer.png" alt="Nova Player" width="100"></p>
 
 # Nova Player
