@@ -22,6 +22,7 @@
             <StackPanel Orientation="Horizontal" Margin="7,11,0,24"><Border Background="#377FF2" CornerRadius="11" Width="42" Height="42"><TextBlock Text="▶" Foreground="White" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
               <StackPanel Margin="9,2,0,0"><TextBlock Text="Luma" FontSize="19" FontWeight="Bold" Foreground="#153C73"/><TextBlock Text="PLAYER" FontSize="10" FontWeight="Bold" Foreground="#3A85F7"/></StackPanel></StackPanel>
             <TextBlock Text="LIBRARY" Foreground="#6E91BB" FontSize="10" FontWeight="Bold" Margin="11,0,0,8"/>
+            <Button Style="{StaticResource NavItem}" Content="⌂   Home" Click="Home_Click" Background="#C4DFFF"/>
             <Button Style="{StaticResource NavItem}" Name="AllButton" Background="#C4DFFF" Content="⌂   All media" Click="Filter_Click" Tag="All"/>
             <Button Style="{StaticResource NavItem}" Content="▸   Videos" Click="Filter_Click" Tag="Videos"/>
             <Button Style="{StaticResource NavItem}" Content="♫   Music" Click="Filter_Click" Tag="Music"/>
@@ -35,6 +36,16 @@
           </StackPanel>
           <StackPanel DockPanel.Dock="Bottom" VerticalAlignment="Bottom">
             <Border Style="{StaticResource GlassCard}" Padding="12" Margin="0,15,0,0"><StackPanel><TextBlock Text="✦  Beautifully yours" FontSize="13" FontWeight="SemiBold"/><TextBlock Margin="0,7,0,0" Text="Your library stays on this PC.&#10;No account. No tracking." Foreground="#6786AF" FontSize="11"/></StackPanel></Border>
+            
+            <Border Margin="0,12,0,4" Background="#D7E9FF" CornerRadius="13" Padding="9">
+              <StackPanel>
+                <TextBlock Text="APP UPDATES" FontWeight="Bold" FontSize="10" Foreground="#4C7FAF" Margin="4,0,0,6"/>
+                <Button x:Name="CheckUpdatesButton" Style="{StaticResource SoftButton}" Content="⟳ Check for updates" Click="CheckUpdates_Click"/>
+                <Button x:Name="InstallUpdateButton" Style="{StaticResource PrimaryButton}" Visibility="Collapsed" Content="↓ Download &amp; install" Click="InstallUpdate_Click" Margin="0,7,0,0"/>
+                <ProgressBar x:Name="UpdateProgress" Visibility="Collapsed" Minimum="0" Maximum="100" Height="7" Margin="2,8,2,0"/>
+                <TextBlock x:Name="UpdateStatus" Text="Update checks are manual." Foreground="#4D749F" FontSize="10" TextWrapping="Wrap" Margin="4,7,3,0"/>
+              </StackPanel>
+            </Border>
             <ComboBox x:Name="ThemePicker" SelectionChanged="Theme_Changed" Margin="0,12,0,0" ToolTip="Color theme"><ComboBoxItem Content="Blue" IsSelected="True"/><ComboBoxItem Content="Violet"/><ComboBoxItem Content="Ocean"/><ComboBoxItem Content="Rose"/><ComboBoxItem Content="Midnight"/></ComboBox>
             <TextBlock Text="LUMA PLAYER  ·  v1.0" Margin="9,15,0,0" Foreground="#7999BF" FontSize="10"/>
           </StackPanel>
@@ -55,6 +66,60 @@
             <vlc:VideoView x:Name="VideoSurface" Visibility="Collapsed" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
             <Grid x:Name="EmptyVisual" Background="#101C32"><StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"><TextBlock Text="▶" Foreground="#86B6FF" FontSize="66" HorizontalAlignment="Center"/><TextBlock Text="The next scene starts here." Foreground="White" FontSize="21" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,16,0,7"/><TextBlock Text="Open a movie, drop media here, or choose from your library." Foreground="#9AB5DA" FontSize="12" HorizontalAlignment="Center"/><Button Content="＋  Open media" Style="{StaticResource PrimaryButton}" HorizontalAlignment="Center" Margin="0,25,0,0" Click="OpenFiles_Click"/></StackPanel></Grid>
             <Grid x:Name="MusicVisual" Visibility="Collapsed" Background="#172A52"><StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"><Border Width="180" Height="180" Background="#386CCA" CornerRadius="28"><TextBlock Text="♫" FontSize="95" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><TextBlock Text="Now playing" Foreground="#C9DEFF" HorizontalAlignment="Center" Margin="0,24,0,6" FontSize="13"/><TextBlock x:Name="MusicTitle" Foreground="White" HorizontalAlignment="Center" FontSize="19" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" MaxWidth="360"/></StackPanel></Grid>
+
+            <!-- Offline home dashboard: Explorer-generated thumbnails, not cloud thumbnails -->
+            <Grid x:Name="HomeDashboard" Visibility="Collapsed" Background="#F2F8FF">
+              <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+              </Grid.RowDefinitions>
+              <Border Grid.Row="0" CornerRadius="15" Background="#E5F1FF" Margin="13,13,13,10" Padding="17">
+                <DockPanel>
+                  <Button DockPanel.Dock="Right" Content="⟳ Refresh" Style="{StaticResource SoftButton}" Click="RefreshHome_Click" Margin="8,0,0,0"/>
+                  <StackPanel>
+                    <TextBlock Text="Your Cinema" FontSize="22" FontWeight="Bold" Foreground="#173A75"/>
+                    <TextBlock Text="Your videos, beautifully organized. All previews stay on this PC." FontSize="11" Foreground="#6587B6" Margin="0,4,0,0"/>
+                  </StackPanel>
+                </DockPanel>
+              </Border>
+              <DockPanel Grid.Row="1" Margin="19,0,17,8">
+                <TextBlock DockPanel.Dock="Right" x:Name="HomeVideoCount" Text="Finding your videos…" Foreground="#4278C3" FontSize="11" VerticalAlignment="Center"/>
+                <TextBlock x:Name="HomeScanStatus" Text="Loading local videos…" Foreground="#7693B8" FontSize="11"/>
+              </DockPanel>
+              <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <StackPanel>
+                  <StackPanel x:Name="HomeNoVideos" Visibility="Collapsed" HorizontalAlignment="Center" Margin="0,65,0,0">
+                    <TextBlock Text="▸" HorizontalAlignment="Center" Foreground="#3B88F7" FontSize="48"/>
+                    <TextBlock Text="No videos found yet" HorizontalAlignment="Center" FontWeight="Bold" FontSize="17" Foreground="#173B73" Margin="0,9,0,0"/>
+                    <TextBlock Text="Add a video folder or open a movie to begin." HorizontalAlignment="Center" Foreground="#7794B7" Margin="0,6,0,13"/>
+                    <Button Style="{StaticResource PrimaryButton}" Content="＋ Open videos" Click="OpenFiles_Click" HorizontalAlignment="Center"/>
+                  </StackPanel>
+                  <ItemsControl x:Name="HomeVideosList" Margin="9,0,8,12">
+                    <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel Orientation="Horizontal"/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <Button Click="HomeVideo_Click" Width="212" Height="184" Cursor="Hand" Background="Transparent" BorderThickness="0" Padding="0" Margin="5">
+                          <Border CornerRadius="13" ClipToBounds="True" Background="White" BorderBrush="#D9E8FB" BorderThickness="1">
+                            <StackPanel>
+                              <Grid Height="119" Background="#192F55">
+                                <TextBlock Text="▶" Foreground="#91BFFF" FontSize="40" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <Image Source="{Binding Thumbnail}" Stretch="UniformToFill"/>
+                                <Border Background="#AB173963" CornerRadius="6" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="7" Padding="7,4">
+                                  <TextBlock Text="▶ Play" Foreground="White" FontSize="10" FontWeight="SemiBold"/>
+                                </Border>
+                              </Grid>
+                              <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis" Foreground="#193B6C" FontWeight="SemiBold" FontSize="12" Margin="11,10,11,3"/>
+                              <TextBlock Text="{Binding Details}" TextTrimming="CharacterEllipsis" Foreground="#718FB4" FontSize="10" Margin="11,0,11,9"/>
+                            </StackPanel>
+                          </Border>
+                        </Button>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </ScrollViewer>
+            </Grid>
           </Grid>
         </Border>
         <Border Grid.Row="3" Style="{StaticResource GlassCard}" Padding="12" Margin="0,11,0,0"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
