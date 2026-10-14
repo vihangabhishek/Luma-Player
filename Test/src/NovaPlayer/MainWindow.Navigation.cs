@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -105,16 +106,53 @@ public partial class MainWindow
         TopStatus.Text = "Ready — choose a video or song";
     }
 
-    private void EnsurePlaybackEngine()
+    // Loading libvlc.dll, plugins, and codec state can take seconds on slower disks.
+    // Never do it on WPF's message thread: Windows will display "Not Responding".
+    private Task<(LibVLCSharp.Shared.LibVLC Engine, LibVLCSharp.Shared.MediaPlayer Player)>? _engineLoading;
+    private bool _playbackShuttingDown;
+    private int _openGeneration;
+    private readonly System.Threading.SemaphoreSlim _openGate = new(1, 1);
+
+    private async Task EnsurePlaybackEngineAsync()
     {
         if (_player != null) return;
-        StartupDiagnostics.InitializeVlc();
-        _engine = new LibVLCSharp.Shared.LibVLC(
-            "--avcodec-hw=any", "--no-video-title-show",
-            "--file-caching=350", "--network-caching=1000");
-        _player = new LibVLCSharp.Shared.MediaPlayer(_engine);
-        _player.Volume = Math.Clamp(_state.Volume, 0, 100);
+
+        _engineLoading ??= Task.Run(() =>
+        {
+            StartupDiagnostics.InitializeVlc();
+            var engine = new LibVLCSharp.Shared.LibVLC(
+                "--avcodec-hw=any", "--no-video-title-show",
+                "--file-caching=300", "--network-caching=900");
+            try
+            {
+                var player = new LibVLCSharp.Shared.MediaPlayer(engine);
+                return (Engine: engine, Player: player);
+            }
+            catch
+            {
+                engine.Dispose();
+                throw;
+            }
+        });
+
+        (var engine, var player) = await _engineLoading;
+        if (_playbackShuttingDown)
+        {
+            if (_player == null)
+            {
+                player.Dispose();
+                engine.Dispose();
+            }
+            throw new OperationCanceledException("Nova Player is closing.");
+        }
+        if (_player != null) return;
+
+        // Assign WPF VideoView and UI-bound event handlers on the Dispatcher only.
+        _engine = engine;
+        _player = player;
         VideoSurface.MediaPlayer = _player;
+        _player.Volume = Math.Clamp(_state.Volume, 0, 100);
+
         _player.EndReached += (_, _) => Dispatcher.BeginInvoke(new Action(NextAfterEnd));
         _player.Playing += (_, _) => Dispatcher.BeginInvoke(new Action(() =>
         {
@@ -125,9 +163,10 @@ public partial class MainWindow
             }
             PlayPauseButton.Content = "Ⅱ Pause";
         }));
-        _player.Paused += (_, _) => Dispatcher.BeginInvoke(new Action(() => PlayPauseButton.Content = "▶ Play"));
+        _player.Paused += (_, _) => Dispatcher.BeginInvoke(new Action(() =>
+            PlayPauseButton.Content = "▶ Play"));
         _player.EncounteredError += (_, _) => Dispatcher.BeginInvoke(new Action(() =>
-            TopStatus.Text = "Could not play this file; try another format."));
+            TopStatus.Text = "Cannot play this file — try another codec or format."));
         TopStatus.Text = "Ready to play";
     }
 }
