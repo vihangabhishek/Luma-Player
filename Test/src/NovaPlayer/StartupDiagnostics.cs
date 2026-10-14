@@ -58,6 +58,58 @@ internal static class StartupDiagnostics
         }
     }
 
+    internal static int RunPlaybackSmokeTest()
+    {
+        string? sample = null;
+        try
+        {
+            Write("Running offline PCM playback smoke test.");
+            InitializeVlc();
+            sample = Path.Combine(Path.GetTempPath(), "nova-smoke-" + Guid.NewGuid().ToString("N") + ".wav");
+            const int rate = 8000, seconds = 2;
+            using (var stream = File.Create(sample))
+            using (var wav = new BinaryWriter(stream))
+            {
+                int dataSize = rate * seconds * sizeof(short);
+                wav.Write(System.Text.Encoding.ASCII.GetBytes("RIFF"));
+                wav.Write(36 + dataSize);
+                wav.Write(System.Text.Encoding.ASCII.GetBytes("WAVEfmt "));
+                wav.Write(16); wav.Write((short)1); wav.Write((short)1);
+                wav.Write(rate); wav.Write(rate * sizeof(short));
+                wav.Write((short)sizeof(short)); wav.Write((short)16);
+                wav.Write(System.Text.Encoding.ASCII.GetBytes("data"));
+                wav.Write(dataSize);
+                for (int i = 0; i < rate * seconds; i++)
+                    wav.Write((short)(Math.Sin(2.0 * Math.PI * 440.0 * i / rate) * 3000));
+            }
+
+            using var engine = new LibVLC("--aout=dummy", "--no-video-title-show");
+            using var player = new LibVLCSharp.Shared.MediaPlayer(engine);
+            using var media = new Media(engine, new Uri(sample));
+            if (!player.Play(media))
+                throw new InvalidOperationException("LibVLC refused the sample media.");
+            bool playing = false;
+            for (int i = 0; i < 25; i++)
+            {
+                System.Threading.Thread.Sleep(100);
+                if (player.IsPlaying) { playing = true; break; }
+            }
+            player.Stop();
+            if (!playing) throw new TimeoutException("LibVLC never started sample playback.");
+            Write("Offline PCM playback smoke test passed.");
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            Write("Offline PCM playback smoke test failed.", ex);
+            return 1;
+        }
+        finally
+        {
+            if (sample != null) { try { File.Delete(sample); } catch { } }
+        }
+    }
+
     internal static void ReportCrash(Exception ex)
     {
         Write("Unhandled application startup/runtime exception.", ex);
