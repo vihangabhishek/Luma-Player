@@ -1,3 +1,13 @@
+using MessageBox = System.Windows.MessageBox;
+using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
+using SaveFileDialog = Microsoft.Win32.SaveFileDialog;
+using Button = System.Windows.Controls.Button;
+using TextBox = System.Windows.Controls.TextBox;
+using ComboBox = System.Windows.Controls.ComboBox;
+using Color = System.Windows.Media.Color;
+using ColorConverter = System.Windows.Media.ColorConverter;
+using DataFormats = System.Windows.DataFormats;
+using KeyEventHandler = System.Windows.Input.KeyEventHandler;
 using LibVLCSharp.Shared;
 using Microsoft.Win32;
 using System.Collections.ObjectModel;
