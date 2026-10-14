@@ -34,7 +34,8 @@ internal static class PlayerUpdater
         response.EnsureSuccessStatusCode();
         await using var stream = await response.Content.ReadAsStreamAsync(cancel);
         using var doc = await JsonDocument.ParseAsync(stream, cancellationToken: cancel);
-        Version installed = typeof(PlayerUpdater).Assembly.GetName().Version ?? new Version(1, 1, 0);
+        Version assembly = typeof(PlayerUpdater).Assembly.GetName().Version ?? new Version(1, 1, 0);
+        Version installed = new(assembly.Major, assembly.Minor, Math.Max(0, assembly.Build));
         PlayerUpdate? latest = null;
 
         foreach (var release in doc.RootElement.EnumerateArray())
