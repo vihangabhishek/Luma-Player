@@ -53,7 +53,7 @@ public static class LocalStore
             lock (SaveGate)
             {
                 _pendingJson = json;
-                if (_saveTask == null || _saveTask.IsCompleted)
+                if (_saveTask == null)
                     _saveTask = Task.Run(DrainSaves);
             }
         }
@@ -68,9 +68,13 @@ public static class LocalStore
             lock (SaveGate)
             {
                 json = _pendingJson;
+                if (json == null)
+                {
+                    _saveTask = null;
+                    return;
+                }
                 _pendingJson = null;
             }
-            if (json == null) return;
 
             try
             {
