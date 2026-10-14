@@ -10,7 +10,16 @@
     <AssemblyName>NovaPlayer</AssemblyName>
     <RootNamespace>NovaPlayer</RootNamespace>
     <ApplicationIcon>Assets/NovaPlayer.ico</ApplicationIcon>
-    <Version>1.2.0</Version>
+    <Version>1.2.1</Version>
+    <!-- Keep WPF reflection/XAML support intact: trimming is unsupported for this app. -->
+    <PublishTrimmed>false</PublishTrimmed>
+    <PublishReadyToRun>false</PublishReadyToRun>
+    <!-- Do not ship debugging symbols in retail builds. -->
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+    <UseAppHost>true</UseAppHost>
+    <!-- Windows Desktop uses workstation GC by default; avoid server GC's extra heaps. -->
+    <ServerGarbageCollection>false</ServerGarbageCollection>
   </PropertyGroup>
   <ItemGroup>
     <Resource Include="Assets/NovaPlayer.ico" />
