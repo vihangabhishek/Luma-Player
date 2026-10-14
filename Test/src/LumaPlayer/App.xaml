@@ -1,0 +1,17 @@
+<Application x:Class="LumaPlayer.App" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" StartupUri="MainWindow.xaml">
+  <Application.Resources>
+    <SolidColorBrush x:Key="Ink" Color="#17345E"/>
+    <SolidColorBrush x:Key="Muted" Color="#738CAD"/>
+    <SolidColorBrush x:Key="Accent" Color="#3782F7"/>
+    <Style TargetType="TextBlock"><Setter Property="Foreground" Value="{StaticResource Ink}"/><Setter Property="FontFamily" Value="Segoe UI"/></Style>
+    <Style TargetType="Button" x:Key="SoftButton">
+      <Setter Property="Foreground" Value="#23538C"/><Setter Property="Background" Value="#E3EEFF"/><Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="Padding" Value="12,8"/><Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button"><Border CornerRadius="12" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}"><ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/></Border></ControlTemplate></Setter.Value></Setter>
+    </Style>
+    <Style TargetType="Button" x:Key="PrimaryButton" BasedOn="{StaticResource SoftButton}"><Setter Property="Background" Value="#377FF2"/><Setter Property="Foreground" Value="White"/><Setter Property="FontWeight" Value="SemiBold"/></Style>
+    <Style TargetType="TextBox"><Setter Property="Padding" Value="12,10"/><Setter Property="FontSize" Value="13"/><Setter Property="Foreground" Value="#20436C"/><Setter Property="Background" Value="#F7FBFF"/><Setter Property="BorderBrush" Value="#C9DDFA"/><Setter Property="BorderThickness" Value="1"/></Style>
+    <Style TargetType="ComboBox"><Setter Property="Background" Value="#F6FAFF"/><Setter Property="Foreground" Value="#244A7A"/><Setter Property="Padding" Value="7,5"/></Style>
+  </Application.Resources>
+</Application>

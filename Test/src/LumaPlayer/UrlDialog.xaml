@@ -1,0 +1,6 @@
+<Window x:Class="LumaPlayer.UrlDialog" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Open network media"
+        WindowStartupLocation="CenterOwner" WindowStyle="ToolWindow" ResizeMode="NoResize" Width="510" Height="215"
+        Background="#E7F2FF" FontFamily="Segoe UI">
+    <StackPanel Margin="21"><TextBlock Text="Open a media URL" Foreground="#183E70" FontSize="19" FontWeight="Bold"/><TextBlock Margin="0,9,0,7" Text="HTTP/HTTPS audio or video stream (only open trusted URLs)" Foreground="#577DA7" FontSize="11"/><TextBox Name="Address" Padding="9" FontSize="13" Text="https://"/><StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,17,0,0"><Button Content="Cancel" Click="Cancel_Click" Padding="17,7" Margin="0,0,10,0"/><Button Content="Open" Click="Open_Click" Padding="18,7" Background="#3B83F8" Foreground="White" BorderThickness="0"/></StackPanel></StackPanel>
+</Window>
