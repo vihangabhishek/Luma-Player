@@ -123,10 +123,11 @@ internal static class PlayerUpdater
         if (!Regex.IsMatch(filename, @"^Luma-Player-Setup-\d+\.\d+\.\d+\.exe$") || !File.Exists(verifiedInstallerPath))
             throw new InvalidOperationException("No verified Luma Player installer was downloaded.");
         // Standard interactive Inno Setup wizard, never silent / bypassing Windows protection.
-        Process.Start(new ProcessStartInfo(verifiedInstallerPath)
+        if (Process.Start(new ProcessStartInfo(verifiedInstallerPath)
         {
             UseShellExecute = true,
             WorkingDirectory = Path.GetDirectoryName(verifiedInstallerPath)!
-        }) ?? throw new InvalidOperationException("Windows could not launch the installer.");
+        }) == null)
+            throw new InvalidOperationException("Windows could not launch the installer.");
     }
 }
