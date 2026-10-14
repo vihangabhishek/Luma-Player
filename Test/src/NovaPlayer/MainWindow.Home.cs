@@ -19,7 +19,7 @@ public partial class MainWindow
     {
         HomeVideosList.ItemsSource = _homeVideos;
         ShowHome();
-        ScanHomeVideos();
+        // First scan starts after the window has rendered.
     }
 
     private void ShowHome()
@@ -96,7 +96,7 @@ public partial class MainWindow
                         Path = path,
                         Title = title,
                         Details = extension + " · " + folder,
-                        Thumbnail = count < 50 ? ExplorerThumbnail.TryRead(path) : null
+                        Thumbnail = count < 28 ? ExplorerThumbnail.TryRead(path) : null
                     };
                     ++count;
                     Dispatcher.BeginInvoke(new Action(() =>
@@ -118,7 +118,7 @@ public partial class MainWindow
                     Dispatcher.BeginInvoke(new Action(() => HomeScanStatus.Text = "Could not scan videos. You can still open files manually."));
             }
         })
-        { IsBackground = true, Name = "Luma local video previews" };
+        { IsBackground = true, Name = "Nova local video previews" };
         thread.SetApartmentState(ApartmentState.STA);
         thread.Start();
     }
