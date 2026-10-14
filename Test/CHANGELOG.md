@@ -1,3 +1,13 @@
+## 1.2.1 — Smoother playback and responsiveness
+
+- Initialize native VLC asynchronously to keep the app window responsive.
+- Open local media and network streams on background workers with serialized media requests.
+- Offload playback pause/resume from the UI thread.
+- Reduce playback progress polling and skip it during native media opening.
+- Defer Home folder scanning, reduce thumbnail processing and cap visible library items.
+- Queue and coalesce settings saves instead of waiting for disk I/O on the UI thread.
+- Avoid blocking WPF close while native playback tears down.
+- Preserve one complete self-contained app, offline codec support, and in-app updates.
 # Nova Player — Changelog
 
 ## 1.2.0 preview
