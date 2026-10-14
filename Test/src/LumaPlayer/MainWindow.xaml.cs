@@ -78,6 +78,7 @@ public partial class MainWindow : Window
             if ((string?)option.Content == _state.Theme) { ThemePicker.SelectedItem = option; break; }
         ApplyTheme();
         RefreshLibrary();
+        InitializeHome();
         AddHandler(Keyboard.KeyDownEvent, new KeyEventHandler(Window_KeyDown), true);
     }
 
@@ -119,6 +120,7 @@ public partial class MainWindow : Window
         }
         LocalStore.Save(_state);
         RefreshLibrary();
+        ScanHomeVideos();
         TopStatus.Text = $"Added {added} media file(s)";
         if (autoPlay && firstNew != null) OpenMedia(firstNew);
     }
@@ -170,6 +172,7 @@ public partial class MainWindow : Window
         _current = null;
         _streamTitle = dialog.Url;
         _pendingResume = 0;
+        ShowPlayer();
         VideoSurface.Visibility = Visibility.Visible;
         EmptyVisual.Visibility = Visibility.Collapsed;
         MusicVisual.Visibility = Visibility.Collapsed;
@@ -191,6 +194,7 @@ public partial class MainWindow : Window
         _current = item; _streamTitle = null;
         _pendingResume = _state.ResumeEnabled ? Math.Max(0,item.ResumeMs) : 0;
         item.LastPlayedUtc = DateTime.UtcNow;
+        ShowPlayer();
         bool video = MediaCatalog.IsVideo(item.Path);
         VideoSurface.Visibility = video ? Visibility.Visible : Visibility.Collapsed;
         MusicVisual.Visibility = video ? Visibility.Collapsed : Visibility.Visible;
@@ -314,7 +318,7 @@ public partial class MainWindow : Window
     { if(Playlist.SelectedItem is MediaItem item)OpenMedia(item); }
     private void Playlist_SelectionChanged(object sender,SelectionChangedEventArgs e) { }
     private void Filter_Click(object sender,RoutedEventArgs e)
-    { if(sender is Button b && b.Tag is string filter) { _filter=filter;RefreshLibrary();TopStatus.Text=filter+" library"; } }
+    { if(sender is Button b && b.Tag is string filter) { _filter=filter;RefreshLibrary();ShowPlayer();TopStatus.Text=filter+" library"; } }
     private void Search_Changed(object sender,TextChangedEventArgs e) { if(!_loading&&_state!=null)RefreshLibrary(); }
     private void Shuffle_Click(object sender,RoutedEventArgs e)
     { _state.Shuffle=!_state.Shuffle;ShuffleButton.Content="Shuffle: "+(_state.Shuffle?"On":"Off");LocalStore.Save(_state); }
