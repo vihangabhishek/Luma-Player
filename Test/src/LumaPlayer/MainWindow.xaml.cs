@@ -47,7 +47,7 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         _state = LocalStore.Load();
-        Core.Initialize();
+        StartupDiagnostics.InitializeVlc();
         _engine = new LibVLC("--avcodec-hw=any", "--no-video-title-show", "--file-caching=350", "--network-caching=1000");
         _player = new MediaPlayer(_engine);
         _player.Volume = Math.Clamp(_state.Volume, 0, 100);
