@@ -96,17 +96,13 @@ public partial class MainWindow
 
     private void Window_ContentRendered(object? sender, EventArgs e)
     {
-        // Let WPF paint its first frame before loading the large native VLC libraries.
+        // Render the shell first. Only load the heavyweight VLC engine when the
+        // user plays media; idle library browsing should stay memory-light.
         Dispatcher.BeginInvoke(new Action(() =>
         {
-            if (_player != null) return;
-            try { EnsurePlaybackEngine(); }
-            catch (Exception ex)
-            {
-                StartupDiagnostics.Write("Deferred playback initialization failed.", ex);
-                TopStatus.Text = "Playback engine could not initialize. See About → diagnostics.";
-            }
+            if (!Dispatcher.HasShutdownStarted) ScanHomeVideos();
         }), System.Windows.Threading.DispatcherPriority.ApplicationIdle);
+        TopStatus.Text = "Ready — choose a video or song";
     }
 
     private void EnsurePlaybackEngine()
