@@ -323,7 +323,7 @@ public partial class MainWindow : Window
             outer.ColumnDefinitions[0].Width = _previousLeft;
             outer.ColumnDefinitions[2].Width = _previousRight;
             outer.Margin = new Thickness(13, 12, 13, 0);
-            MainArea.Margin = new Thickness(13, 0);
+            MainArea.Margin = new Thickness(13, 0, 13, 0);
             PlayerContainer.CornerRadius = new CornerRadius(17);
             PlayerContainer.BorderThickness = new Thickness(1);
             NavPanel.Visibility = Visibility.Visible;
