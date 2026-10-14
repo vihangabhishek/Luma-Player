@@ -1,3 +1,7 @@
+## Nova Player v1.2.1 — Responsiveness
+
+Media opening, native VLC initialization and playback controls now run off the WPF UI thread to reduce Not Responding events. The app has one self-contained installer and includes the complete LibVLC codec engine; in-app updates remain supported. Media decoding performance depends on hardware and codecs. Windows CI includes a native audio playback smoke test.
+
 <p align="center"><img src="assets/NovaPlayer.png" alt="Nova Player" width="100"></p>
 
 # Nova Player
