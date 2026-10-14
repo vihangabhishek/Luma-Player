@@ -36,6 +36,15 @@ jobs:
           $native = @(Get-ChildItem 'Test/publish' -Filter libvlc.dll -Recurse -File)
           if ($native.Count -eq 0) { throw 'LibVLC engine missing from the published player' }
 
+      - name: Run real LibVLC startup smoke test
+        shell: pwsh
+        run: |
+          $player = (Resolve-Path 'Test/publish/LumaPlayer.exe').Path
+          $process = Start-Process -FilePath $player -ArgumentList '--diagnose' -Wait -PassThru
+          $log = Join-Path $env:LOCALAPPDATA 'LumaPlayer/logs/startup.log'
+          if (Test-Path $log) { Get-Content $log -Tail 70 }
+          if ($process.ExitCode -ne 0) { throw "LibVLC startup failed with exit code $($process.ExitCode)" }
+
       - name: Install Inno Setup
         shell: pwsh
         run: |
@@ -60,12 +69,12 @@ jobs:
         if: github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.0.0-preview
-          name: 'Luma Player v1.0.0 — Windows Test Release'
+          tag_name: v1.0.1-preview
+          name: 'Luma Player v1.0.1 — Startup Fix (Test Release)'
           prerelease: true
           make_latest: false
           body: |
-            Luma Player is a Windows 11 music and video player powered by LibVLC.
+            Luma Player v1.0.1 fixes native LibVLC DLL loading diagnostics and adds friendly startup error logging. Windows build checks include a real native player-engine startup test.
             This is an unsigned technical preview. The installer has not been tested end-to-end on a physical Windows 11 PC.
             Windows lock-screen media controls are not implemented yet.
             Performance and hardware acceleration depend on the GPU, codec, video, and drivers.
