@@ -125,7 +125,7 @@
                 <TextBlock Text="Local playback. No account." FontSize="10" Foreground="#7B8FA9" TextWrapping="Wrap" Margin="0,5,0,0"/>
               </StackPanel>
             </Border>
-            <TextBlock Text="NOVA PLAYER · v1.2" Foreground="#A0AEC1" FontSize="10" Margin="9,0,0,6"/>
+            <TextBlock Text="NOVA PLAYER · v1.2.1" Foreground="#A0AEC1" FontSize="10" Margin="9,0,0,6"/>
           </StackPanel>
         </DockPanel>
       </Border>
@@ -252,7 +252,7 @@
                 <TextBlock Text="Keep Nova Player up to date, on your terms." FontSize="12" Foreground="#8A9AAF" Margin="0,7,0,23"/>
                 <Border Style="{StaticResource PaneCard}">
                   <StackPanel>
-                    <TextBlock Text="Nova Player 1.2.0" FontSize="18" FontWeight="SemiBold"/>
+                    <TextBlock Text="Nova Player 1.2.1" FontSize="18" FontWeight="SemiBold"/>
                     <TextBlock Text="Check GitHub for new official versions. No background downloads or silent installations." Foreground="#8094AA" FontSize="12" TextWrapping="Wrap" Margin="0,10,0,18"/>
                     <Button x:Name="CheckUpdatesButton" Style="{StaticResource PrimaryButton}" HorizontalAlignment="Left" Content="↻ Check for updates" Click="CheckUpdates_Click"/>
                     <Button x:Name="InstallUpdateButton" Style="{StaticResource ActionButton}" HorizontalAlignment="Left" Content="↓ Download &amp; install" Margin="0,11,0,0" Visibility="Collapsed" Click="InstallUpdate_Click"/>
@@ -271,7 +271,7 @@
                     <TextBlock Text="▶" FontSize="50" Foreground="#3478F6"/>
                     <TextBlock Text="Nova Player" FontWeight="Bold" FontSize="22" Margin="0,12,0,5"/>
                     <TextBlock Text="Your media. Beautifully simple." Foreground="#617A9A" FontSize="13"/>
-                    <TextBlock Text="Version 1.2.0 · Technical Preview" Margin="0,16,0,0" FontSize="12" Foreground="#7D92AD"/>
+                    <TextBlock Text="Version 1.2.1 · Technical Preview" Margin="0,16,0,0" FontSize="12" Foreground="#7D92AD"/>
                     <TextBlock Text="A lightweight, offline-first Windows music and video player powered by LibVLC. Fullscreen movies, local video previews, music controls, subtitles and verified optional updates." TextWrapping="Wrap" FontSize="12" Foreground="#6F839E" Margin="0,15,0,0"/>
                     <TextBlock Text="Source code: github.com/vihangaabishek5-lang/Luma-Player" Foreground="#3070D3" FontSize="12" Margin="0,20,0,0"/>
                     <TextBlock Text="Nova Player does not upload your library or local files." TextWrapping="Wrap" Foreground="#96A6B8" FontSize="11" Margin="0,15,0,0"/>
