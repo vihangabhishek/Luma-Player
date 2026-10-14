@@ -440,9 +440,42 @@ public partial class MainWindow : Window
     }
     private void Window_Drop(object sender,System.Windows.DragEventArgs e)
     { if(e.Data.GetDataPresent(DataFormats.FileDrop) && e.Data.GetData(DataFormats.FileDrop) is string[] files)AddMediaPaths(files,true); }
-    private void Window_Closing(object? sender,CancelEventArgs e)
+    private void Window_Closing(object? sender, CancelEventArgs e)
     {
-        try { _playbackShuttingDown = true; ++_openGeneration; SaveResume();_state.Volume=(int)VolumeSlider.Value;LocalStore.Save(_state);_clock.Stop();if(_player!=null){_player.Stop();VideoSurface.MediaPlayer=null;_player.Dispose();_engine.Dispose();} LocalStore.FlushPending(); }
-        catch { /* shutdown best effort */ }
+        _playbackShuttingDown = true;
+        ++_openGeneration;
+        _clock.Stop();
+        try
+        {
+            if (!_nativeMediaOpening) SaveResume();
+            _state.Volume = (int)VolumeSlider.Value;
+            LocalStore.Save(_state);
+            LocalStore.FlushPending();
+        }
+        catch (Exception ex) { StartupDiagnostics.Write("Unable to finish saving on shutdown.", ex); }
+
+        if (_player != null)
+        {
+            // WPF-owned video view must be detached on the UI thread.
+            try { VideoSurface.MediaPlayer = null; }
+            catch (Exception ex) { StartupDiagnostics.Write("Video surface could not detach.", ex); }
+
+            var player = _player;
+            var engine = _engine;
+            // Stop and native disposal can block on a decoder thread. Do not
+            // freeze the closing window while libvlc waits for playback to stop.
+            _ = Task.Run(async () =>
+            {
+                await _openGate.WaitAsync();
+                try
+                {
+                    player.Stop();
+                    player.Dispose();
+                    engine.Dispose();
+                }
+                catch (Exception ex) { StartupDiagnostics.Write("Playback cleanup failed.", ex); }
+                finally { _openGate.Release(); }
+            });
+        }
     }
 }
