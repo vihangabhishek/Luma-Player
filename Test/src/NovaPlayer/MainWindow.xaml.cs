@@ -13,6 +13,7 @@ using Microsoft.Win32;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -52,7 +53,7 @@ public partial class MainWindow : Window
         Playlist.ItemsSource = _visible;
         SearchBox.Text = "";
         VideoSurface.Loaded += (_, _) => { if (_player != null) VideoSurface.MediaPlayer = _player; };
-        _clock = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(300) };
+        _clock = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(750) };
         _clock.Tick += (_, _) => RefreshPosition();
         _clock.Start();
         _loading = false;
@@ -150,58 +151,105 @@ public partial class MainWindow : Window
         }
     }
 
-    private void OpenUrl_Click(object sender, RoutedEventArgs e)
+    private async void OpenUrl_Click(object sender, RoutedEventArgs e)
     {
         var dialog = new UrlDialog { Owner = this };
         if (dialog.ShowDialog() != true || dialog.Url == null) return;
-        EnsurePlaybackEngine();
-        SaveResume();
-        _current = null;
-        _streamTitle = dialog.Url;
-        _pendingResume = 0;
-        ShowPlayer();
-        VideoSurface.Visibility = Visibility.Visible;
-        EmptyVisual.Visibility = Visibility.Collapsed;
-        MusicVisual.Visibility = Visibility.Collapsed;
-        NowTitle.Text = "Network stream";
-        NowMeta.Text = dialog.Url;
-        TopStatus.Text = "Connecting to network stream…";
-        try { using var media = new Media(_engine, new Uri(dialog.Url)); _player.Play(media); }
-        catch(Exception ex) { MessageBox.Show(this,ex.Message,"Stream error",MessageBoxButton.OK,MessageBoxImage.Error); }
+        int request = ++_openGeneration;
+        TopStatus.Text = "Connecting to stream…";
+        try
+        {
+            await EnsurePlaybackEngineAsync();
+            if (_playbackShuttingDown || request != _openGeneration) return;
+            SaveResume();
+            _current = null;
+            _streamTitle = dialog.Url;
+            _pendingResume = 0;
+            ShowPlayer();
+            NowTitle.Text = "Network stream";
+            NowMeta.Text = dialog.Url;
+            await _openGate.WaitAsync();
+            try
+            {
+                if (request != _openGeneration) return;
+                // Network media opening must not freeze the WPF message queue.
+                bool started = await Task.Run(() =>
+                {
+                    using var media = new Media(_engine, new Uri(dialog.Url));
+                    return _player.Play(media);
+                });
+                if (request == _openGeneration)
+                    TopStatus.Text = started ? "Playing network stream" : "Stream could not be opened";
+            }
+            finally { _openGate.Release(); }
+        }
+        catch (Exception ex)
+        {
+            StartupDiagnostics.Write("Unable to start network stream.", ex);
+            TopStatus.Text = "Network stream unavailable";
+        }
     }
 
-    private void OpenMedia(MediaItem item)
+    private async void OpenMedia(MediaItem item)
     {
         if (!File.Exists(item.Path))
         {
-            MessageBox.Show(this,"This file was moved or deleted. Remove it from your library or add its new location.","File unavailable",MessageBoxButton.OK,MessageBoxImage.Information);
+            TopStatus.Text = "File was moved or deleted. Please choose a new location.";
             return;
         }
-        EnsurePlaybackEngine();
-        if (_current != item) SaveResume();
-        _current = item; _streamTitle = null;
-        _pendingResume = _state.ResumeEnabled ? Math.Max(0,item.ResumeMs) : 0;
-        item.LastPlayedUtc = DateTime.UtcNow;
-        ShowPlayer();
-        bool video = MediaCatalog.IsVideo(item.Path);
-        VideoSurface.Visibility = video ? Visibility.Visible : Visibility.Collapsed;
-        MusicVisual.Visibility = video ? Visibility.Collapsed : Visibility.Visible;
-        EmptyVisual.Visibility = Visibility.Collapsed;
-        MusicTitle.Text = item.Title;
-        NowTitle.Text = item.Title;
-        NowMeta.Text = item.Secondary;
-        TopStatus.Text = video ? "Hardware decoding enabled where available" : "Music playback";
+
+        int request = ++_openGeneration;
+        TopStatus.Text = "Preparing media…";
         try
         {
-            using var media = new Media(_engine, new Uri(item.Path));
-            bool ok = _player.Play(media);
-            if (!ok) TopStatus.Text = "Unable to start playback";
-            else if (video && _state.AutoFullscreenVideo && !_compact)
-                Fullscreen_Click(this, new RoutedEventArgs());
+            await EnsurePlaybackEngineAsync();
+            if (_playbackShuttingDown || request != _openGeneration) return;
+
+            if (_current != item) SaveResume();
+            _current = item;
+            _streamTitle = null;
+            _pendingResume = _state.ResumeEnabled ? Math.Max(0, item.ResumeMs) : 0;
+            item.LastPlayedUtc = DateTime.UtcNow;
+            ShowPlayer();
+            bool video = MediaCatalog.IsVideo(item.Path);
+            MusicTitle.Text = item.Title;
+            NowTitle.Text = item.Title;
+            NowMeta.Text = item.Secondary;
+
+            // One native media-open operation at a time; newer selections take precedence.
+            await _openGate.WaitAsync();
+            try
+            {
+                if (_playbackShuttingDown || request != _openGeneration) return;
+                bool started = await Task.Run(() =>
+                {
+                    using var media = new Media(_engine, new Uri(item.Path));
+                    return _player.Play(media);
+                });
+                if (_playbackShuttingDown || request != _openGeneration) return;
+                if (!started)
+                {
+                    TopStatus.Text = "Unable to open media — try another file";
+                }
+                else
+                {
+                    TopStatus.Text = video ? "Playing video" : "Playing music";
+                    if (video && _state.AutoFullscreenVideo && !_compact)
+                        Fullscreen_Click(this, new RoutedEventArgs());
+                }
+            }
+            finally { _openGate.Release(); }
+
+            // Persistence is queued off-thread; update list without rescanning files.
+            LocalStore.Save(_state);
+            RefreshLibrary();
         }
-        catch (Exception ex) { MessageBox.Show(this,ex.Message,"Playback error",MessageBoxButton.OK,MessageBoxImage.Warning); }
-        LocalStore.Save(_state);
-        RefreshLibrary();
+        catch (OperationCanceledException) { }
+        catch (Exception ex)
+        {
+            StartupDiagnostics.Write("Unable to open media.", ex);
+            TopStatus.Text = "Could not play this file — choose another";
+        }
     }
 
     private void RefreshPosition()
@@ -251,12 +299,20 @@ public partial class MainWindow : Window
         OpenMedia(queue[(i - 1 + queue.Length) % queue.Length]);
     }
     private void Next_Click(object sender,RoutedEventArgs e)=>NextCore(false);
-    private void PlayPause_Click(object sender,RoutedEventArgs e)
+    private async void PlayPause_Click(object sender, RoutedEventArgs e)
     {
-        try { EnsurePlaybackEngine(); }
-        catch (Exception ex) { StartupDiagnostics.ReportCrash(ex); return; }
-        if (_player.Media == null) { if (_visible.Count>0) OpenMedia(_visible[0]); else OpenFiles_Click(sender,e); return; }
-        if (_player.IsPlaying) _player.Pause(); else _player.Play();
+        try
+        {
+            if (_player == null && _visible.Count > 0) { OpenMedia(_visible[0]); return; }
+            if (_player == null) { OpenFiles_Click(sender, e); return; }
+            // Pause/resume can synchronously wait on the native playback pipeline.
+            await Task.Run(() =>
+            {
+                if (_player.IsPlaying) _player.Pause();
+                else _player.Play();
+            });
+        }
+        catch (Exception ex) { StartupDiagnostics.Write("Playback control failed.", ex); }
     }
     private void Back_Click(object sender,RoutedEventArgs e) => SeekBy(-10_000);
     private void Forward_Click(object sender,RoutedEventArgs e) => SeekBy(10_000);
@@ -285,7 +341,7 @@ public partial class MainWindow : Window
     private void Snapshot_Click(object sender,RoutedEventArgs e)
     {
         if(_current==null||!MediaCatalog.IsVideo(_current.Path)) { TopStatus.Text="Open a video to take a snapshot";return; }
-        var picker=new SaveFileDialog{Filter="PNG image|*.png",FileName="Luma-Player-"+DateTime.Now.ToString("yyyyMMdd-HHmmss")+".png"};
+        var picker=new SaveFileDialog{Filter="PNG image|*.png",FileName="Nova-Player-"+DateTime.Now.ToString("yyyyMMdd-HHmmss")+".png"};
         if(picker.ShowDialog(this)==true)TopStatus.Text=_player.TakeSnapshot(0,picker.FileName,0,0)?"Screenshot saved":"Screenshot unavailable";
     }
     private void Fullscreen_Click(object sender,RoutedEventArgs e)
@@ -381,7 +437,7 @@ public partial class MainWindow : Window
     { if(e.Data.GetDataPresent(DataFormats.FileDrop) && e.Data.GetData(DataFormats.FileDrop) is string[] files)AddMediaPaths(files,true); }
     private void Window_Closing(object? sender,CancelEventArgs e)
     {
-        try { SaveResume();_state.Volume=(int)VolumeSlider.Value;LocalStore.Save(_state);_clock.Stop();if(_player!=null){_player.Stop();VideoSurface.MediaPlayer=null;_player.Dispose();_engine.Dispose();} }
+        try { _playbackShuttingDown = true; ++_openGeneration; SaveResume();_state.Volume=(int)VolumeSlider.Value;LocalStore.Save(_state);_clock.Stop();if(_player!=null){_player.Stop();VideoSurface.MediaPlayer=null;_player.Dispose();_engine.Dispose();} LocalStore.FlushPending(); }
         catch { /* shutdown best effort */ }
     }
 }
