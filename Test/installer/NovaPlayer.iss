@@ -1,5 +1,5 @@
 #define AppName "Nova Player"
-#define AppVersion "1.2.0"
+#define AppVersion "1.2.1"
 #define AppExeName "NovaPlayer.exe"
 
 [Setup]
@@ -8,11 +8,11 @@ AppId={{4AA28F60-3729-4AD0-9B12-5E3D480A3319}
 AppName={#AppName}
 AppVersion={#AppVersion}
 AppPublisher=Nova Player Contributors
-AppPublisherURL=https://github.com/vihangaabishek5-lang/Luma-Player
+AppPublisherURL=https://github.com/vihangabhishek/Luma-Player
 DefaultDirName={localappdata}\Programs\Nova Player
 DefaultGroupName=Nova Player
 OutputDir=..\dist
-OutputBaseFilename=Nova-Player-Setup-1.2.0
+OutputBaseFilename=Nova-Player-Setup-1.2.1
 SetupIconFile=..\assets\NovaPlayer.ico
 UninstallDisplayIcon={app}\{#AppExeName}
 PrivilegesRequired=lowest
