@@ -45,6 +45,15 @@ jobs:
           if (Test-Path $log) { Get-Content $log -Tail 70 }
           if ($process.ExitCode -ne 0) { throw "LibVLC startup failed with exit code $($process.ExitCode)" }
 
+      - name: Launch WPF app home screen (Windows smoke test)
+        shell: pwsh
+        run: |
+          $player = (Resolve-Path 'Test/publish/LumaPlayer.exe').Path
+          $process = Start-Process -FilePath $player -ArgumentList '--ui-smoke-test' -Wait -PassThru
+          $log = Join-Path $env:LOCALAPPDATA 'LumaPlayer/logs/startup.log'
+          if (Test-Path $log) { Get-Content $log -Tail 35 }
+          if ($process.ExitCode -ne 0) { throw "Windows WPF home screen failed startup, exit $($process.ExitCode)" }
+
       - name: Install Inno Setup
         shell: pwsh
         run: |
@@ -66,15 +75,18 @@ jobs:
           retention-days: 30
 
       - name: Publish test release
-        if: github.ref == 'refs/heads/main'
+        if: github.event_name == 'push' && contains(github.event.head_commit.message, '[publish-1.1]')
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.0.1-preview
-          name: 'Luma Player v1.0.1 — Startup Fix (Test Release)'
+          tag_name: v1.1.0-preview
+          name: 'Luma Player v1.1.0 — Home Video Previews & In-App Updates (Test Release)'
           prerelease: true
           make_latest: false
           body: |
-            Luma Player v1.0.1 fixes native LibVLC DLL loading diagnostics and adds friendly startup error logging. Windows build checks include a real native player-engine startup test.
+            Luma Player v1.1 adds offline Home video discovery and Explorer-based video preview cards, plus manual in-app update checking and SHA-256 verified downloads from GitHub Releases.
+            Scans the current user's Videos folder and top-level Downloads, and shows any imported library videos. Other folders can be added manually.
+            Installers remain unsigned preview builds: Windows SmartScreen may warn. Do not disable antivirus.
+            Windows CI checks include native VLC startup and WPF home screen smoke test, but physical PC testing is still recommended.
             This is an unsigned technical preview. The installer has not been tested end-to-end on a physical Windows 11 PC.
             Windows lock-screen media controls are not implemented yet.
             Performance and hardware acceleration depend on the GPU, codec, video, and drivers.
