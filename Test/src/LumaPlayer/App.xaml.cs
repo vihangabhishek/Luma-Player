@@ -29,8 +29,20 @@ public partial class App : System.Windows.Application
             Shutdown(result);
             return;
         }
-        StartupDiagnostics.Write("Launching Luma Player window.");
+        bool uiSmoke = Array.Exists(e.Args, arg => arg.Equals("--ui-smoke-test", StringComparison.OrdinalIgnoreCase));
+        StartupDiagnostics.Write(uiSmoke ? "Starting Windows UI smoke test." : "Launching Luma Player window.");
         base.OnStartup(e);
+        if (uiSmoke)
+        {
+            var timer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(4) };
+            timer.Tick += (_, _) =>
+            {
+                timer.Stop();
+                StartupDiagnostics.Write("Windows UI smoke test passed.");
+                Shutdown(0);
+            };
+            timer.Start();
+        }
     }
 
     private void OnUnhandled(object sender, DispatcherUnhandledExceptionEventArgs e)
