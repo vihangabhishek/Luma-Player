@@ -1,3 +1,14 @@
+## Luma Player v1.1 — Home videos & in-app updates
+
+**Home:** The default Home screen automatically discovers videos from your Windows **Videos** folder, the top level of **Downloads**, and media you already added to the Luma library. It never scans the whole drive. A background worker loads video preview frames through Windows Explorer's thumbnail providers where available, so some codecs may display a play icon instead of a thumbnail. Click a preview to play. **Refresh** scans again. **Open files** and **Add folder** allow other locations.
+
+**Updates inside the app:** Use **Check for updates** on the left sidebar. If a newer official GitHub release exists, choose **Download & install**, confirm, then wait for the SHA-256-verified download. A second confirmation opens the normal installer and closes the player. Updates are never installed silently, and release assets without a GitHub SHA-256 digest are rejected. Internet is required only for checking/downloading updates; playback and local previews work offline.
+
+**Important:** If you currently use v1.0.1 or earlier, you must manually install **v1.1.0 once** to gain the in-app updater. These are unsigned technical preview installers; Microsoft SmartScreen can warn and you should **not** disable security software. Windows CI includes native LibVLC and WPF application startup smoke tests, but a real Windows 11 installation and playback test is still needed.
+
+
+---
+
 [Luma-Player-README.md](https://github.com/user-attachments/files/33452180/Luma-Player-README.md)
 <div align="center">
   <img src="assets/LumaPlayer.png" alt="Luma Player logo" width="116" />
