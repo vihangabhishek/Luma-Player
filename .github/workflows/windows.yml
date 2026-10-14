@@ -49,6 +49,15 @@ jobs:
           if (Test-Path $log) { Get-Content $log -Tail 40 }
           if ($test.ExitCode -ne 0) { throw "Native VLC startup test failed: $($test.ExitCode)" }
 
+      - name: Test actual audio playback through LibVLC
+        shell: pwsh
+        run: |
+          $exe = (Resolve-Path 'Test/publish/NovaPlayer.exe').Path
+          $test = Start-Process -FilePath $exe -ArgumentList '--playback-smoke-test' -PassThru -Wait
+          $log = Join-Path $env:LOCALAPPDATA 'NovaPlayer/logs/startup.log'
+          if (Test-Path $log) { Get-Content $log -Tail 30 }
+          if ($test.ExitCode -ne 0) { throw "Native audio playback smoke test failed: $($test.ExitCode)" }
+
       - name: Test actual WPF window startup
         shell: pwsh
         run: |
