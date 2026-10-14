@@ -23,6 +23,11 @@ public partial class App : System.Windows.Application
 
     protected override void OnStartup(StartupEventArgs e)
     {
+        if (Array.Exists(e.Args, arg => arg.Equals("--playback-smoke-test", StringComparison.OrdinalIgnoreCase)))
+        {
+            Shutdown(StartupDiagnostics.RunPlaybackSmokeTest());
+            return;
+        }
         if (Array.Exists(e.Args, arg => arg.Equals("--diagnose", StringComparison.OrdinalIgnoreCase)))
         {
             int result = StartupDiagnostics.RunSelfTest();
