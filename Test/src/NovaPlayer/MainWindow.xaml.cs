@@ -54,7 +54,7 @@ public partial class MainWindow : Window
         Playlist.ItemsSource = _visible;
         LibraryResults.ItemsSource = _visible;
         SearchBox.Text = "";
-        VideoSurface.Loaded += (_, _) => { if (_player != null) VideoSurface.MediaPlayer = _player; };
+        // Bind the native video renderer after its HWND is visible, not at startup.
         _clock = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(750) };
         _clock.Tick += (_, _) => RefreshPosition();
         _clock.Start();
@@ -168,6 +168,13 @@ public partial class MainWindow : Window
             _streamTitle = dialog.Url;
             _pendingResume = 0;
             ShowPlayer();
+            await Dispatcher.InvokeAsync(() => VideoHost.UpdateLayout(), DispatcherPriority.Loaded);
+            if (_playbackShuttingDown || request != _openGeneration) return;
+            IntPtr hwnd = VideoSurface.Handle;
+            VideoSurface.MediaPlayer = _player;
+            _player.Hwnd = hwnd;
+            if (hwnd == IntPtr.Zero)
+                throw new InvalidOperationException("The video display was not initialized.");
             NowTitle.Text = "Network stream";
             NowMeta.Text = dialog.Url;
             await _openGate.WaitAsync();
@@ -216,6 +223,17 @@ public partial class MainWindow : Window
             item.LastPlayedUtc = DateTime.UtcNow;
             ShowPlayer();
             bool video = MediaCatalog.IsVideo(item.Path);
+            if (video)
+            {
+                await Dispatcher.InvokeAsync(() => VideoHost.UpdateLayout(), DispatcherPriority.Loaded);
+                if (_playbackShuttingDown || request != _openGeneration) return;
+                IntPtr hwnd = VideoSurface.Handle;
+                VideoSurface.MediaPlayer = _player;
+                _player.Hwnd = hwnd;
+                if (hwnd == IntPtr.Zero || _player.Hwnd == IntPtr.Zero)
+                    throw new InvalidOperationException("The video display was not initialized.");
+                StartupDiagnostics.Write("Native HWND renderer attached successfully.");
+            }
             MusicTitle.Text = item.Title;
             NowTitle.Text = item.Title;
             NowMeta.Text = item.Secondary;
@@ -386,17 +404,17 @@ public partial class MainWindow : Window
             ResizeMode = _previousResize;
             outer.ColumnDefinitions[0].Width = _previousLeft;
             outer.ColumnDefinitions[2].Width = _previousRight;
-            outer.Margin = new Thickness(13, 12, 13, 0);
-            MainArea.Margin = new Thickness(13, 0, 13, 0);
-            PlayerContainer.CornerRadius = new CornerRadius(17);
+            outer.Margin = new Thickness(5);
+            MainArea.Margin = new Thickness(5, 0);
+            PlayerContainer.CornerRadius = new CornerRadius(2);
             PlayerContainer.BorderThickness = new Thickness(1);
             AppToolbar.Visibility = Visibility.Visible;
-            AppRoot.RowDefinitions[0].Height = new GridLength(70);
+            AppRoot.RowDefinitions[0].Height = new GridLength(46);
             NavPanel.Visibility = Visibility.Visible;
             TopHeader.Visibility = Visibility.Visible;
             WindowState = _previousWindowState;
             NavigateChrome("player");
-            VideoSurface.Visibility = Visibility.Visible;
+            VideoHost.Visibility = Visibility.Visible;
         }
         _compact = !_compact;
     }
@@ -426,7 +444,7 @@ public partial class MainWindow : Window
             ++_openGeneration;
             _current = null;
             EmptyVisual.Visibility = Visibility.Visible;
-            VideoSurface.Visibility = Visibility.Collapsed;
+            VideoHost.Visibility = Visibility.Collapsed;
             MusicVisual.Visibility = Visibility.Collapsed;
             if (_player != null)
             {
@@ -447,15 +465,15 @@ public partial class MainWindow : Window
         // Dark, GPU-friendly surfaces regardless of chosen accent preset.
         var background = _state.Theme switch
         {
-            "Violet" => "#131125", "Ocean" => "#0B1921",
-            "Rose" => "#1E1320", "Midnight" => "#080D17", _ => "#0B0F19"
+            "Violet" => "#F4F1FA", "Ocean" => "#EFF7F9",
+            "Rose" => "#FFF2F7", "Midnight" => "#E9EEF5", _ => "#F2F4F7"
         };
         AppRoot.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString(background));
     }
     private void Window_KeyDown(object sender,System.Windows.Input.KeyEventArgs e)
     {
         if(Keyboard.FocusedElement is TextBox||Keyboard.FocusedElement is ComboBox)return;
-        if (_player == null && e.Key != Key.O) return;
+        if (_player == null && !(e.Key == Key.O && Keyboard.Modifiers == ModifierKeys.Control)) return;
         switch(e.Key)
         {
             case Key.Space: PlayPause_Click(this,new RoutedEventArgs());e.Handled=true;break;

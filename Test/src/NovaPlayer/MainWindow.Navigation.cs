@@ -44,7 +44,7 @@ public partial class MainWindow
         LibraryLanding.Visibility = Visibility.Collapsed;
         EmptyVisual.Visibility = Visibility.Collapsed;
         MusicVisual.Visibility = Visibility.Collapsed;
-        VideoSurface.Visibility = Visibility.Collapsed;
+        VideoHost.Visibility = Visibility.Collapsed;
 
         // Full-width tabs for browsing; queue appears only while playing media.
         bool library = section == "player";
@@ -71,11 +71,11 @@ public partial class MainWindow
             bool selected = button.Tag is string tag && tag == section;
             if (section == "player") selected = false;
             button.Background = new SolidColorBrush(selected
-                ? System.Windows.Media.Color.FromRgb(35, 57, 91)
+                ? System.Windows.Media.Color.FromRgb(231, 236, 245)
                 : System.Windows.Media.Colors.Transparent);
             button.Foreground = new SolidColorBrush(selected
-                ? System.Windows.Media.Color.FromRgb(229, 241, 255)
-                : System.Windows.Media.Color.FromRgb(146, 162, 187));
+                ? System.Windows.Media.Color.FromRgb(33, 65, 102)
+                : System.Windows.Media.Color.FromRgb(91, 108, 129));
         }
     }
 
@@ -183,7 +183,7 @@ public partial class MainWindow
         // Assign WPF VideoView and UI-bound event handlers on the Dispatcher only.
         _engine = engine;
         _player = player;
-        VideoSurface.MediaPlayer = _player;
+        // Renderer HWND is attached just before video playback.
         _player.Volume = Math.Clamp(_state.Volume, 0, 100);
 
         _player.EndReached += (_, _) => Dispatcher.BeginInvoke(new Action(NextAfterEnd));

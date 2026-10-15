@@ -1,22 +1,18 @@
-# Nova Player Changelog
+# Nova Player Change Log
 
-## v1.3.0 — Dark UI Redesign (Stability Candidate)
+## v1.4.0 — Real Video Playback Fix and Classic UI
+- Replaced WPF LibVLC video overlay view with LibVLCSharp.WinForms VideoView in a WindowsFormsHost (real HWND).
+- Waits for the video host to become visible before connecting the MediaPlayer and opening videos.
+- Better error diagnostics if the native video HWND cannot initialize.
+- Added Windows CI smoke test with an auto-generated AVI video (checks the native HWND and actual video playing state).
+- Replaced the previous dark dashboard-style UI with a familiar, compact Windows media-player layout.
+- Maintained Home, Music, Videos, Settings, Updates, About, playlist and full codec engine.
+- Kept SHA-256 verified manual in-app updates and original local library/settings migration.
+- Fixed fullscreen toolbar height and pre-playback Ctrl+O.
+- Still a preview: testing on user GPUs/4K/H.265/subtitles required.
 
-- Fully redesigned dark UI with compact sidebar, persistent top toolbar and playback dock.
-- Functional Home, Music, Videos, Settings, Updates and About tabs.
-- Full-width, virtualized Music/Videos lists and playable double-click items; player queue only when playing.
-- Genuine video fullscreen hides the app toolbar and dock, returning via Esc.
-- Improved navigation state and dark accent appearance.
-- Safer playback-null guards and asynchronous media cleanup/removal.
-- Transient LibVLC initialization failures can be retried.
-- Windows automated smoke test exercises all six tabs, plus native audio playback tests.
-- Preserves local music/video library, LibVLC codecs, video playback and manual SHA-256 verified updates.
-- Preview limitations: installer is not signed; performance on every GPU and movie type not yet tested.
+## v1.3.0 — Redesigned library
+- Six tabs, video queue, WPF player stage.
 
-## v1.2.1 — Performance and Responsiveness
-
-- Asynchronous VLC engine loading and media opening, capped video previews, background state saving.
-
-## v1.2.0 — Nova Rebrand
-
-- Nova Player branding, minimal player controls and in-app updates.
+## v1.2.1 — Responsiveness
+- Background VLC initialization and media opening; more efficient previews and settings saves.

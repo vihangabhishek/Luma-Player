@@ -47,12 +47,12 @@ public partial class MainWindow
         if (_current != null)
         {
             bool video = MediaCatalog.IsVideo(_current.Path);
-            VideoSurface.Visibility = video ? Visibility.Visible : Visibility.Collapsed;
+            VideoHost.Visibility = video ? Visibility.Visible : Visibility.Collapsed;
             MusicVisual.Visibility = video ? Visibility.Collapsed : Visibility.Visible;
         }
         else if (_streamTitle != null)
         {
-            VideoSurface.Visibility = Visibility.Visible;
+            VideoHost.Visibility = Visibility.Visible;
         }
         else
         {

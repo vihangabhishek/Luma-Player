@@ -34,6 +34,31 @@ public partial class App : System.Windows.Application
             Shutdown(result);
             return;
         }
+        bool videoSmoke = Array.Exists(e.Args, arg => arg.Equals("--video-smoke-test", StringComparison.OrdinalIgnoreCase));
+        if (videoSmoke)
+        {
+            StartupDiagnostics.Write("Starting real native video renderer smoke test.");
+            base.OnStartup(e);
+            var videoTest = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(700) };
+            videoTest.Tick += async (_, _) =>
+            {
+                videoTest.Stop();
+                try
+                {
+                    if (MainWindow is not MainWindow window)
+                        throw new InvalidOperationException("Main window did not load.");
+                    await window.RunVideoSmokeAsync();
+                    Shutdown(0);
+                }
+                catch (Exception ex)
+                {
+                    StartupDiagnostics.Write("Real native video renderer smoke test FAILED.", ex);
+                    Shutdown(1);
+                }
+            };
+            videoTest.Start();
+            return;
+        }
         bool uiSmoke = Array.Exists(e.Args, arg => arg.Equals("--ui-smoke-test", StringComparison.OrdinalIgnoreCase));
         StartupDiagnostics.Write(uiSmoke ? "Starting Windows UI smoke test." : "Launching Nova Player window.");
         base.OnStartup(e);
