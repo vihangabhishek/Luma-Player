@@ -405,7 +405,7 @@ public partial class MainWindow : Window
             outer.ColumnDefinitions[0].Width = _previousLeft;
             outer.ColumnDefinitions[2].Width = _previousRight;
             outer.Margin = new Thickness(5);
-            MainArea.Margin = new Thickness(5, 0);
+            MainArea.Margin = new Thickness(5, 0, 5, 0);
             PlayerContainer.CornerRadius = new CornerRadius(2);
             PlayerContainer.BorderThickness = new Thickness(1);
             AppToolbar.Visibility = Visibility.Visible;
