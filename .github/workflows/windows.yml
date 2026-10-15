@@ -79,20 +79,20 @@ jobs:
         run: |
           & 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe' 'Test\installer\NovaPlayer.iss'
           if ($LASTEXITCODE -ne 0) { throw "Inno Setup failed" }
-          if (!(Test-Path 'Test/dist/Nova-Player-Setup-1.2.1.exe')) { throw 'Nova Setup.exe missing' }
+          if (!(Test-Path 'Test/dist/Nova-Player-Setup-1.3.0.exe')) { throw 'Nova Setup.exe missing' }
 
       - name: Preserve previous player updater compatibility
         shell: pwsh
         run: |
           # Previous Luma Player v1.1 checks for this exact legacy filename.
           # Both assets contain the same Nova Player v1.2 installer.
-          Copy-Item 'Test/dist/Nova-Player-Setup-1.2.1.exe' 'Test/dist/Luma-Player-Setup-1.2.1.exe'
+          Copy-Item 'Test/dist/Nova-Player-Setup-1.3.0.exe' 'Test/dist/Luma-Player-Setup-1.3.0.exe'
 
       - name: Upload Windows installer artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Nova-Player-Windows-Setup-1.2.1
-          path: Test/dist/Nova-Player-Setup-1.2.1.exe
+          name: Nova-Player-Windows-Setup-1.3.0
+          path: Test/dist/Nova-Player-Setup-1.3.0.exe
           if-no-files-found: error
           retention-days: 30
 
@@ -100,12 +100,12 @@ jobs:
         if: github.event_name == 'push' && contains(github.event.head_commit.message, '[publish-nova]')
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.2.1-preview
-          name: 'Nova Player v1.2.1 — Responsive Playback & Minimal UI (Preview)'
+          tag_name: v1.3.0-preview
+          name: 'Nova Player v1.3.0 — Redesigned UI & Stability Candidate (Preview)'
           prerelease: true
           make_latest: false
           body: |
-            Nova Player v1.2.1 moves VLC initialization and media opening off the UI thread, throttles playback polling, bounds thumbnail loading and coalesces settings writes. This remains a single self-contained Windows installer with complete VLC engine support.
+            Nova Player v1.3.0 introduces a fully redesigned, fast, dark media library with separate Home/Music/Videos/Settings/Updates/About tabs, functional full-width Music and Videos browsers, a dedicated playback queue and fullscreen movie experience. Playback work remains asynchronous to keep Windows responsive. This remains a single self-contained Windows installer with complete VLC engine support.
             Nova Player is the new brand for Luma Player. Simplified Home, Music,
             Videos, Settings, Updates and About navigation. Video playback enters
             immersive fullscreen by default; turn this off in Settings.
@@ -113,14 +113,14 @@ jobs:
             initial window presentation. Library settings from Luma Player are
             imported once without deleting the original.
 
-            Nova-Player-Setup-1.2.1.exe is the new installer.
-            Luma-Player-Setup-1.2.1.exe is an identical compatibility copy for
+            Nova-Player-Setup-1.3.0.exe is the new installer.
+            Luma-Player-Setup-1.3.0.exe is an identical compatibility copy for
             users updating through the previous Luma Player v1.1 updater.
 
-            GitHub CI validates compilation, VLC startup, and WPF window startup.
+            GitHub CI validates compilation, native VLC startup, actual PCM playback, WPF window startup and tab navigation.
             This is an unsigned preview; it has NOT been fully tested on physical
             Windows hardware for every codec or upgrade path. Do not disable antivirus.
             The GitHub repository URL remains /Luma-Player for compatibility.
           files: |
-            Test/dist/Nova-Player-Setup-1.2.1.exe
-            Test/dist/Luma-Player-Setup-1.2.1.exe
+            Test/dist/Nova-Player-Setup-1.3.0.exe
+            Test/dist/Luma-Player-Setup-1.3.0.exe

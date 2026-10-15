@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using Button = System.Windows.Controls.Button;
@@ -24,7 +25,16 @@ public partial class MainWindow
 
     private void ShowHome()
     {
-        if (_player?.IsPlaying == true) _player.Pause();
+        if (_player != null)
+        {
+            _ = Task.Run(async () =>
+            {
+                await _openGate.WaitAsync();
+                try { if (_player.IsPlaying) _player.Pause(); }
+                catch (Exception ex) { StartupDiagnostics.Write("Could not pause player during navigation.", ex); }
+                finally { _openGate.Release(); }
+            });
+        }
         NavigateChrome("home");
         _filter = "All";
         RefreshLibrary();

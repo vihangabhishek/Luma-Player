@@ -46,7 +46,8 @@ public partial class MainWindow
         MusicVisual.Visibility = Visibility.Collapsed;
         VideoSurface.Visibility = Visibility.Collapsed;
 
-        bool library = section is "home" or "music" or "videos" or "player";
+        // Full-width tabs for browsing; queue appears only while playing media.
+        bool library = section == "player";
         LibraryPanel.Visibility = library ? Visibility.Visible : Visibility.Collapsed;
         ShellGrid.ColumnDefinitions[2].Width = library ? new GridLength(268) : new GridLength(0);
         PlaybackTools.Visibility = section == "player" ? Visibility.Visible : Visibility.Collapsed;
@@ -68,12 +69,13 @@ public partial class MainWindow
         foreach (var button in new[] { NavHome, NavMusic, NavVideos, NavSettings, NavUpdates, NavAbout })
         {
             bool selected = button.Tag is string tag && tag == section;
+            if (section == "player") selected = false;
             button.Background = new SolidColorBrush(selected
-                ? System.Windows.Media.Color.FromRgb(233, 242, 255)
+                ? System.Windows.Media.Color.FromRgb(35, 57, 91)
                 : System.Windows.Media.Colors.Transparent);
             button.Foreground = new SolidColorBrush(selected
-                ? System.Windows.Media.Color.FromRgb(46, 107, 216)
-                : System.Windows.Media.Color.FromRgb(81, 100, 124));
+                ? System.Windows.Media.Color.FromRgb(229, 241, 255)
+                : System.Windows.Media.Color.FromRgb(146, 162, 187));
         }
     }
 
@@ -86,6 +88,30 @@ public partial class MainWindow
         LibraryIcon.Text = section == "music" ? "♫" : "▶";
         LibraryWelcome.Text = section == "music" ? "Your music" : "Your videos";
         LibraryHint.Text = "Double-click an item in your library to play,\nor choose Open files to add more.";
+    }
+
+    // Called by CI startup test to catch missing controls and navigation regressions.
+    internal void RunUiSmokeScenario()
+    {
+        if (LibraryResults.ItemsSource == null)
+            throw new InvalidOperationException("Music/video library was not initialized.");
+        ShowLibraryTab("music");
+        if (LibraryLanding.Visibility != Visibility.Visible || LibraryPanel.Visibility == Visibility.Visible)
+            throw new InvalidOperationException("Music tab layout is invalid.");
+        ShowLibraryTab("videos");
+        if (LibraryLanding.Visibility != Visibility.Visible)
+            throw new InvalidOperationException("Videos tab did not open.");
+        NavigateChrome("settings");
+        SettingsPage.Visibility = Visibility.Visible;
+        if (SettingsPage.Visibility != Visibility.Visible)
+            throw new InvalidOperationException("Settings tab did not open.");
+        NavigateChrome("updates");
+        UpdatesPage.Visibility = Visibility.Visible;
+        NavigateChrome("about");
+        AboutPage.Visibility = Visibility.Visible;
+        ShowHome();
+        if (HomeDashboard.Visibility != Visibility.Visible)
+            throw new InvalidOperationException("Home tab did not restore.");
     }
 
     private void AutoFullscreen_Changed(object sender, RoutedEventArgs e)
@@ -135,7 +161,14 @@ public partial class MainWindow
             }
         });
 
-        (var engine, var player) = await _engineLoading;
+        (LibVLCSharp.Shared.LibVLC engine, LibVLCSharp.Shared.MediaPlayer player) resources;
+        try { resources = await _engineLoading; }
+        catch
+        {
+            _engineLoading = null; // Permit retry if a plugin or driver load failed once.
+            throw;
+        }
+        (var engine, var player) = resources;
         if (_playbackShuttingDown)
         {
             if (_player == null)

@@ -43,8 +43,19 @@ public partial class App : System.Windows.Application
             timer.Tick += (_, _) =>
             {
                 timer.Stop();
-                StartupDiagnostics.Write("Windows UI smoke test passed.");
-                Shutdown(0);
+                try
+                {
+                    if (this.MainWindow is not MainWindow window)
+                        throw new InvalidOperationException("Nova main window failed to load.");
+                    window.RunUiSmokeScenario();
+                    StartupDiagnostics.Write("Windows navigation and UI smoke test passed.");
+                    Shutdown(0);
+                }
+                catch (Exception ex)
+                {
+                    StartupDiagnostics.Write("Windows UI navigation smoke test failed.", ex);
+                    Shutdown(1);
+                }
             };
             timer.Start();
         }

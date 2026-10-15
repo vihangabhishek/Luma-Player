@@ -52,6 +52,7 @@ public partial class MainWindow : Window
         // Paint the application before the heavy VLC engine is loaded.
         VolumeSlider.Value = Math.Clamp(_state.Volume, 0, 100);
         Playlist.ItemsSource = _visible;
+        LibraryResults.ItemsSource = _visible;
         SearchBox.Text = "";
         VideoSurface.Loaded += (_, _) => { if (_player != null) VideoSurface.MediaPlayer = _player; };
         _clock = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(750) };
@@ -298,7 +299,7 @@ public partial class MainWindow : Window
     }
     private void Previous_Click(object sender,RoutedEventArgs e)
     {
-        if (_player.Time > 5_000) { _player.Time = 0; return; }
+        if (_player != null && _player.Time > 5_000) { _player.Time = 0; return; }
         var queue = _visible.ToArray();if(queue.Length == 0)return;
         int i = Array.FindIndex(queue,x=>x==_current);
         OpenMedia(queue[(i - 1 + queue.Length) % queue.Length]);
@@ -321,10 +322,10 @@ public partial class MainWindow : Window
     }
     private void Back_Click(object sender,RoutedEventArgs e) => SeekBy(-10_000);
     private void Forward_Click(object sender,RoutedEventArgs e) => SeekBy(10_000);
-    private void SeekBy(long delta) { if(_player.Length>0) _player.Time = Math.Clamp(_player.Time+delta,0,_player.Length); }
+    private void SeekBy(long delta) { if(_player != null && _player.Length>0) _player.Time = Math.Clamp(_player.Time+delta,0,_player.Length); }
     private void Seek_Begin(object sender,MouseButtonEventArgs e)=>_seeking=true;
     private void Seek_End(object sender,MouseButtonEventArgs e)
-    { if(_player.Length>0)_player.Time=(long)(_player.Length*SeekSlider.Value/1000.0);_seeking=false; }
+    { if(_player!=null && _player.Length>0)_player.Time=(long)(_player.Length*SeekSlider.Value/1000.0);_seeking=false; }
     private void Volume_Changed(object sender,RoutedPropertyChangedEventArgs<double> e)
     { if(_loading||_player==null)return;_player.Volume=(int)e.NewValue;_state.Volume=(int)e.NewValue; }
     private void Mute_Click(object sender,RoutedEventArgs e)
@@ -335,7 +336,7 @@ public partial class MainWindow : Window
     { if(_loading||_player==null||AspectPicker.SelectedItem is not ComboBoxItem item)return;_player.AspectRatio=string.IsNullOrEmpty(item.Tag?.ToString())?null:item.Tag.ToString(); }
     private void Subtitle_Click(object sender,RoutedEventArgs e)
     {
-        if(_player.Media==null)return;
+        if(_player?.Media==null)return;
         var f=new OpenFileDialog{Filter="Subtitles|*.srt;*.ass;*.ssa;*.vtt;*.sub|All files|*.*",Title="Select subtitles"};
         if(f.ShowDialog(this)==true)
         {
@@ -361,6 +362,8 @@ public partial class MainWindow : Window
             _previousResize = ResizeMode;
             _previousLeft = outer.ColumnDefinitions[0].Width;
             _previousRight = outer.ColumnDefinitions[2].Width;
+            AppToolbar.Visibility = Visibility.Collapsed;
+            AppRoot.RowDefinitions[0].Height = new GridLength(0);
             NavPanel.Visibility = Visibility.Collapsed;
             LibraryPanel.Visibility = Visibility.Collapsed;
             TopHeader.Visibility = Visibility.Collapsed;
@@ -387,6 +390,8 @@ public partial class MainWindow : Window
             MainArea.Margin = new Thickness(13, 0, 13, 0);
             PlayerContainer.CornerRadius = new CornerRadius(17);
             PlayerContainer.BorderThickness = new Thickness(1);
+            AppToolbar.Visibility = Visibility.Visible;
+            AppRoot.RowDefinitions[0].Height = new GridLength(70);
             NavPanel.Visibility = Visibility.Visible;
             TopHeader.Visibility = Visibility.Visible;
             WindowState = _previousWindowState;
@@ -396,11 +401,16 @@ public partial class MainWindow : Window
         _compact = !_compact;
     }
 
+    private void LibraryResults_DoubleClick(object sender, MouseButtonEventArgs e)
+    {
+        if (LibraryResults.SelectedItem is MediaItem item) OpenMedia(item);
+    }
+
     private void Playlist_DoubleClick(object sender,MouseButtonEventArgs e)
     { if(Playlist.SelectedItem is MediaItem item)OpenMedia(item); }
     private void Playlist_SelectionChanged(object sender,SelectionChangedEventArgs e) { }
     private void Filter_Click(object sender,RoutedEventArgs e)
-    { if(sender is Button b && b.Tag is string filter) { _filter=filter;RefreshLibrary();ShowPlayer();TopStatus.Text=filter+" library"; } }
+    { if(sender is Button b && b.Tag is string filter) { _filter=filter;RefreshLibrary();ShowLibraryTab(filter=="Music"?"music":"videos");TopStatus.Text=filter+" library"; } }
     private void Search_Changed(object sender,TextChangedEventArgs e) { if(!_loading&&_state!=null)RefreshLibrary(); }
     private void Shuffle_Click(object sender,RoutedEventArgs e)
     { _state.Shuffle=!_state.Shuffle;ShuffleButton.Content="Shuffle: "+(_state.Shuffle?"On":"Off");LocalStore.Save(_state); }
@@ -408,18 +418,39 @@ public partial class MainWindow : Window
     { _state.Repeat=_state.Repeat switch{"All"=>"One","One"=>"Off",_=>"All"};RepeatButton.Content="Repeat: "+_state.Repeat;LocalStore.Save(_state); }
     private void Favorite_Click(object sender,RoutedEventArgs e)
     { if(Playlist.SelectedItem is MediaItem item){item.Favorite=!item.Favorite;LocalStore.Save(_state);RefreshLibrary();TopStatus.Text=item.Favorite?"Added to favorites":"Removed from favorites";} }
-    private void Remove_Click(object sender,RoutedEventArgs e)
-    { if(Playlist.SelectedItem is MediaItem item){if(_current==item){_player.Stop();_current=null;EmptyVisual.Visibility=Visibility.Visible;VideoSurface.Visibility=Visibility.Collapsed;MusicVisual.Visibility=Visibility.Collapsed;} _state.Library.Remove(item);LocalStore.Save(_state);RefreshLibrary();} }
+    private async void Remove_Click(object sender, RoutedEventArgs e)
+    {
+        if (Playlist.SelectedItem is not MediaItem item) return;
+        if (_current == item)
+        {
+            ++_openGeneration;
+            _current = null;
+            EmptyVisual.Visibility = Visibility.Visible;
+            VideoSurface.Visibility = Visibility.Collapsed;
+            MusicVisual.Visibility = Visibility.Collapsed;
+            if (_player != null)
+            {
+                await _openGate.WaitAsync();
+                try { await Task.Run(() => _player.Stop()); }
+                catch (Exception ex) { StartupDiagnostics.Write("Could not stop removed media.", ex); }
+                finally { _openGate.Release(); }
+            }
+        }
+        _state.Library.Remove(item);
+        LocalStore.Save(_state);
+        RefreshLibrary();
+    }
     private void Theme_Changed(object sender,SelectionChangedEventArgs e)
     { if(_loading||_state==null)return;_state.Theme=(ThemePicker.SelectedItem as ComboBoxItem)?.Content?.ToString()??"Blue";ApplyTheme();LocalStore.Save(_state); }
     private void ApplyTheme()
     {
-        var colors=_state.Theme switch
+        // Dark, GPU-friendly surfaces regardless of chosen accent preset.
+        var background = _state.Theme switch
         {
-            "Violet"=>("#E9E6FF","#CAC4FA"),"Ocean"=>("#D9F5FF","#B7DDEF"),
-            "Rose"=>("#FFE7F1","#DCC7E9"),"Midnight"=>("#C2D4F0","#7996C8"),_=>("#EAF4FF","#C5DDFF")
+            "Violet" => "#131125", "Ocean" => "#0B1921",
+            "Rose" => "#1E1320", "Midnight" => "#080D17", _ => "#0B0F19"
         };
-        AppRoot.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString(colors.Item1));
+        AppRoot.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString(background));
     }
     private void Window_KeyDown(object sender,System.Windows.Input.KeyEventArgs e)
     {

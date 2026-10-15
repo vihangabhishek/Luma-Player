@@ -10,7 +10,7 @@
     <AssemblyName>NovaPlayer</AssemblyName>
     <RootNamespace>NovaPlayer</RootNamespace>
     <ApplicationIcon>Assets/NovaPlayer.ico</ApplicationIcon>
-    <Version>1.2.1</Version>
+    <Version>1.3.0</Version>
     <!-- Keep WPF reflection/XAML support intact: trimming is unsupported for this app. -->
     <PublishTrimmed>false</PublishTrimmed>
     <PublishReadyToRun>false</PublishReadyToRun>

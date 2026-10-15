@@ -1,374 +1,408 @@
 <Window x:Class="NovaPlayer.MainWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vlc="clr-namespace:LibVLCSharp.WPF;assembly=LibVLCSharp.WPF"
-        Title="Nova Player — Video &amp; Music" Width="1270" Height="800" MinWidth="950" MinHeight="610"
-        Icon="Assets/NovaPlayer.ico" WindowStartupLocation="CenterScreen" Background="#F5F7FC"
-        FontFamily="Segoe UI" Closing="Window_Closing" ContentRendered="Window_ContentRendered"
-        AllowDrop="True" Drop="Window_Drop">
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vlc="clr-namespace:LibVLCSharp.WPF;assembly=LibVLCSharp.WPF"
+    Title="Nova Player — Music and Movies" Width="1275" Height="805" MinWidth="920" MinHeight="605"
+    Icon="Assets/NovaPlayer.ico" Background="#0B0F19" Foreground="#ECF2FA"
+    WindowStartupLocation="CenterScreen" FontFamily="Segoe UI"
+    Closing="Window_Closing" ContentRendered="Window_ContentRendered"
+    AllowDrop="True" Drop="Window_Drop">
   <Window.Resources>
-    <SolidColorBrush x:Key="Ink" Color="#1F2937"/>
-    <SolidColorBrush x:Key="Muted" Color="#69788D"/>
-    <SolidColorBrush x:Key="Accent" Color="#3478F6"/>
+    <SolidColorBrush x:Key="Ink" Color="#F0F4FD"/>
+    <SolidColorBrush x:Key="Muted" Color="#8999B2"/>
+    <SolidColorBrush x:Key="Accent" Color="#70ABFF"/>
     <Style TargetType="TextBlock">
-      <Setter Property="Foreground" Value="{StaticResource Ink}"/>
+      <Setter Property="Foreground" Value="#E9EFF9"/>
       <Setter Property="FontFamily" Value="Segoe UI"/>
     </Style>
     <Style x:Key="NavButton" TargetType="Button">
+      <Setter Property="Foreground" Value="#8B9AB1"/>
       <Setter Property="Background" Value="Transparent"/>
-      <Setter Property="Foreground" Value="#52647C"/>
       <Setter Property="BorderThickness" Value="0"/>
-      <Setter Property="Padding" Value="15,12"/>
-      <Setter Property="HorizontalContentAlignment" Value="Left"/>
+      <Setter Property="Padding" Value="14,13"/>
       <Setter Property="FontSize" Value="13"/>
+      <Setter Property="HorizontalContentAlignment" Value="Left"/>
       <Setter Property="Cursor" Value="Hand"/>
-      <Setter Property="Margin" Value="0,3"/>
-      <Setter Property="Template">
-        <Setter.Value><ControlTemplate TargetType="Button">
-          <Border Background="{TemplateBinding Background}" CornerRadius="11" Padding="{TemplateBinding Padding}">
-            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"/>
+      <Setter Property="Margin" Value="0,2"/>
+      <Setter Property="Template"><Setter.Value>
+        <ControlTemplate TargetType="Button">
+          <Border x:Name="NavBg" Background="{TemplateBinding Background}" CornerRadius="10" Padding="{TemplateBinding Padding}">
+            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="Center"/>
           </Border>
           <ControlTemplate.Triggers>
-            <Trigger Property="IsMouseOver" Value="True"><Setter Property="Background" Value="#EAF1FB"/><Setter Property="Foreground" Value="#2461B7"/></Trigger>
+            <Trigger Property="IsMouseOver" Value="True">
+              <Setter TargetName="NavBg" Property="Background" Value="#202D42"/>
+              <Setter Property="Foreground" Value="#FFFFFF"/>
+            </Trigger>
           </ControlTemplate.Triggers>
-        </ControlTemplate></Setter.Value>
-      </Setter>
+        </ControlTemplate>
+      </Setter.Value></Setter>
     </Style>
     <Style x:Key="ActionButton" TargetType="Button">
-      <Setter Property="Padding" Value="13,9"/>
-      <Setter Property="Background" Value="#EBF1FA"/>
-      <Setter Property="Foreground" Value="#2D517D"/>
+      <Setter Property="Foreground" Value="#DDE8FA"/>
+      <Setter Property="Background" Value="#243147"/>
       <Setter Property="BorderThickness" Value="0"/>
-      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="Padding" Value="14,10"/>
       <Setter Property="FontSize" Value="12"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
       <Setter Property="Cursor" Value="Hand"/>
-      <Setter Property="Template">
-        <Setter.Value><ControlTemplate TargetType="Button">
-          <Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}" CornerRadius="10">
-            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+      <Setter Property="Template"><Setter.Value>
+        <ControlTemplate TargetType="Button">
+          <Border x:Name="ButtonBg" Background="{TemplateBinding Background}" CornerRadius="9" Padding="{TemplateBinding Padding}">
+            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
           </Border>
           <ControlTemplate.Triggers>
-            <Trigger Property="IsMouseOver" Value="True"><Setter Property="Opacity" Value="0.85"/></Trigger>
+            <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="ButtonBg" Property="Opacity" Value="0.80"/></Trigger>
+            <Trigger Property="IsEnabled" Value="False"><Setter TargetName="ButtonBg" Property="Opacity" Value="0.38"/></Trigger>
           </ControlTemplate.Triggers>
-        </ControlTemplate></Setter.Value>
-      </Setter>
+        </ControlTemplate>
+      </Setter.Value></Setter>
     </Style>
     <Style x:Key="PrimaryButton" TargetType="Button" BasedOn="{StaticResource ActionButton}">
-      <Setter Property="Background" Value="#3478F6"/>
+      <Setter Property="Background" Value="#4687F5"/>
       <Setter Property="Foreground" Value="White"/>
     </Style>
-    <Style TargetType="TextBox">
-      <Setter Property="Padding" Value="11,9"/>
-      <Setter Property="FontSize" Value="13"/>
-      <Setter Property="Foreground" Value="#1F3554"/>
-      <Setter Property="Background" Value="#F7FAFF"/>
-      <Setter Property="BorderBrush" Value="#E0E8F3"/>
+    <Style x:Key="PaneCard" TargetType="Border">
+      <Setter Property="Background" Value="#192334"/>
+      <Setter Property="BorderBrush" Value="#2C374C"/>
       <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="14"/>
+      <Setter Property="Padding" Value="19"/>
+    </Style>
+    <Style TargetType="TextBox">
+      <Setter Property="Padding" Value="10,9"/>
+      <Setter Property="Background" Value="#202D40"/>
+      <Setter Property="Foreground" Value="#EFF6FF"/>
+      <Setter Property="CaretBrush" Value="#FFFFFF"/>
+      <Setter Property="BorderBrush" Value="#34445D"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="FontSize" Value="12"/>
     </Style>
     <Style TargetType="ComboBox">
-      <Setter Property="Background" Value="White"/>
-      <Setter Property="Foreground" Value="#284364"/>
       <Setter Property="Padding" Value="8,5"/>
-      <Setter Property="BorderBrush" Value="#DDE7F3"/>
+      <Setter Property="Background" Value="#27354A"/>
+      <Setter Property="Foreground" Value="#0F1C2F"/>
     </Style>
+    <Style TargetType="CheckBox"><Setter Property="Foreground" Value="#D7E3F4"/></Style>
     <Style TargetType="ListBoxItem">
-      <Setter Property="Padding" Value="9"/>
+      <Setter Property="Padding" Value="8"/>
       <Setter Property="Margin" Value="0,3"/>
-      <Setter Property="Foreground" Value="#264262"/>
+      <Setter Property="Foreground" Value="#E9F1FC"/>
       <Setter Property="Background" Value="Transparent"/>
       <Setter Property="BorderThickness" Value="0"/>
       <Style.Triggers>
-        <Trigger Property="IsSelected" Value="True"><Setter Property="Background" Value="#E3EFFF"/><Setter Property="FontWeight" Value="SemiBold"/></Trigger>
+        <Trigger Property="IsSelected" Value="True"><Setter Property="Background" Value="#263E61"/></Trigger>
       </Style.Triggers>
     </Style>
-    <Style x:Key="PaneCard" TargetType="Border">
-      <Setter Property="Background" Value="White"/>
-      <Setter Property="BorderBrush" Value="#E5EBF4"/>
-      <Setter Property="BorderThickness" Value="1"/>
-      <Setter Property="CornerRadius" Value="17"/>
-      <Setter Property="Padding" Value="21"/>
-    </Style>
   </Window.Resources>
-  <Grid x:Name="AppRoot" Background="#F5F7FC">
-    <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-    <Grid x:Name="ShellGrid" Grid.Row="0" Margin="13,12,13,0">
-      <Grid.ColumnDefinitions>
-        <ColumnDefinition Width="198"/><ColumnDefinition Width="*"/><ColumnDefinition Width="268"/>
-      </Grid.ColumnDefinitions>
-      <!-- Calm, fixed-width primary navigation -->
-      <Border x:Name="NavPanel" Grid.Column="0" Background="White" BorderBrush="#E4EAF4" BorderThickness="1" CornerRadius="17" Padding="12" Margin="0,0,0,0">
+  <Grid x:Name="AppRoot" Background="#0B0F19">
+    <Grid.RowDefinitions><RowDefinition Height="70"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+
+    <!-- Slim app toolbar; brand and actions remain visible on every page -->
+    <Border x:Name="AppToolbar" Grid.Row="0" Background="#0F1521" BorderBrush="#293246" BorderThickness="0,0,0,1">
+      <Grid Margin="23,0">
+        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+          <Border Width="39" Height="39" CornerRadius="10" Background="#3447A3">
+            <Image Source="Assets/NovaPlayer.ico" Margin="4" Stretch="Uniform"/>
+          </Border>
+          <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
+            <TextBlock Text="nova" FontSize="21" FontWeight="Bold" Foreground="#FFFFFF"/>
+            <TextBlock Text="MEDIA PLAYER" FontSize="9" FontWeight="SemiBold" Foreground="#7290B7"/>
+          </StackPanel>
+        </StackPanel>
+        <TextBlock Grid.Column="1" Text="PLAY YOUR WORLD" Foreground="#546780" FontSize="10" FontWeight="SemiBold" VerticalAlignment="Center" Margin="40,0,0,0"/>
+        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+          <Button Content="＋  Open media" Style="{StaticResource PrimaryButton}" Click="OpenFiles_Click" Margin="0,0,9,0"/>
+          <Button Content="Add folder" Style="{StaticResource ActionButton}" Click="AddFolder_Click"/>
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <Grid x:Name="ShellGrid" Grid.Row="1" Margin="12">
+      <Grid.ColumnDefinitions><ColumnDefinition Width="184"/><ColumnDefinition Width="*"/><ColumnDefinition Width="280"/></Grid.ColumnDefinitions>
+      <Border x:Name="NavPanel" Grid.Column="0" Background="#111926" CornerRadius="15" Padding="12">
         <DockPanel LastChildFill="True">
           <StackPanel DockPanel.Dock="Top">
-            <StackPanel Orientation="Horizontal" Margin="7,9,0,29">
-              <Border Width="40" Height="40" CornerRadius="12" Background="#3478F6">
-                <TextBlock Text="▶" Foreground="White" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-              </Border>
-              <StackPanel Margin="10,2,0,0">
-                <TextBlock Text="Nova" FontWeight="Bold" FontSize="19"/>
-                <TextBlock Text="PLAYER" Foreground="#3478F6" FontSize="9" FontWeight="Bold"/>
-              </StackPanel>
-            </StackPanel>
-            <TextBlock Text="LIBRARY" Foreground="#9AA8BA" FontSize="10" FontWeight="SemiBold" Margin="10,0,0,10"/>
-            <Button x:Name="NavHome" Style="{StaticResource NavButton}" Background="#E8F1FF" Foreground="#246AD6" Content="⌂     Home" Tag="home" Click="Nav_Click"/>
-            <Button x:Name="NavMusic" Style="{StaticResource NavButton}" Content="♫     Music" Tag="music" Click="Nav_Click"/>
-            <Button x:Name="NavVideos" Style="{StaticResource NavButton}" Content="▸     Videos" Tag="videos" Click="Nav_Click"/>
-            <Border Height="1" Background="#EEF2F7" Margin="10,17,10,14"/>
-            <TextBlock Text="APP" Foreground="#9AA8BA" FontSize="10" FontWeight="SemiBold" Margin="10,0,0,10"/>
-            <Button x:Name="NavSettings" Style="{StaticResource NavButton}" Content="⚙     Settings" Tag="settings" Click="Nav_Click"/>
-            <Button x:Name="NavUpdates" Style="{StaticResource NavButton}" Content="↓     Updates" Tag="updates" Click="Nav_Click"/>
-            <Button x:Name="NavAbout" Style="{StaticResource NavButton}" Content="ⓘ     About" Tag="about" Click="Nav_Click"/>
+            <TextBlock Text="EXPLORE" Foreground="#70839E" FontWeight="SemiBold" FontSize="10" Margin="13,19,0,12"/>
+            <Button x:Name="NavHome" Content="⌂    Home" Tag="home" Click="Nav_Click" Style="{StaticResource NavButton}" Background="#243650" Foreground="#E5F1FF"/>
+            <Button x:Name="NavMusic" Content="♫    Music" Tag="music" Click="Nav_Click" Style="{StaticResource NavButton}"/>
+            <Button x:Name="NavVideos" Content="▶    Videos" Tag="videos" Click="Nav_Click" Style="{StaticResource NavButton}"/>
+            <Border Height="1" Background="#29364A" Margin="11,17,11,18"/>
+            <TextBlock Text="PREFERENCES" Foreground="#70839E" FontWeight="SemiBold" FontSize="10" Margin="13,0,0,12"/>
+            <Button x:Name="NavSettings" Content="⚙    Settings" Tag="settings" Click="Nav_Click" Style="{StaticResource NavButton}"/>
+            <Button x:Name="NavUpdates" Content="↓    Updates" Tag="updates" Click="Nav_Click" Style="{StaticResource NavButton}"/>
+            <Button x:Name="NavAbout" Content="ⓘ    About" Tag="about" Click="Nav_Click" Style="{StaticResource NavButton}"/>
           </StackPanel>
-          <StackPanel DockPanel.Dock="Bottom" VerticalAlignment="Bottom">
-            <Border Background="#F2F6FD" CornerRadius="12" Padding="11" Margin="0,0,0,12">
-              <StackPanel>
-                <TextBlock Text="OFFLINE &amp; PRIVATE" FontSize="10" FontWeight="Bold" Foreground="#4179CA"/>
-                <TextBlock Text="Local playback. No account." FontSize="10" Foreground="#7B8FA9" TextWrapping="Wrap" Margin="0,5,0,0"/>
-              </StackPanel>
-            </Border>
-            <TextBlock Text="NOVA PLAYER · v1.2.1" Foreground="#A0AEC1" FontSize="10" Margin="9,0,0,6"/>
+          <StackPanel DockPanel.Dock="Bottom" VerticalAlignment="Bottom" Margin="8,0,8,8">
+            <TextBlock Text="●  PRIVATE &amp; OFFLINE" Foreground="#76B89A" FontSize="10" FontWeight="SemiBold"/>
+            <TextBlock Text="v1.3.0  ·  WINDOWS" Margin="0,12,0,0" Foreground="#687B96" FontSize="10"/>
           </StackPanel>
         </DockPanel>
       </Border>
 
-      <Grid x:Name="MainArea" Grid.Column="1" Margin="13,0">
-        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-        <DockPanel x:Name="TopHeader" Grid.Row="0" Height="66">
-          <TextBlock x:Name="TopStatus" DockPanel.Dock="Right" Text="Ready" TextAlignment="Right" Foreground="#7E91A8" FontSize="11" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="270"/>
+      <Grid x:Name="MainArea" Grid.Column="1" Margin="12,0">
+        <Grid.RowDefinitions><RowDefinition Height="67"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+        <DockPanel x:Name="TopHeader" Grid.Row="0">
+          <TextBlock x:Name="TopStatus" DockPanel.Dock="Right" Text="Ready" Foreground="#8394AD" FontSize="11" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="230" TextAlignment="Right"/>
           <StackPanel VerticalAlignment="Center">
-            <TextBlock x:Name="PageTitle" Text="Good to see you" FontSize="21" FontWeight="Bold"/>
-            <TextBlock x:Name="PageSubtitle" Text="Your music and movies in one place." FontSize="11" Foreground="#889AAF" Margin="0,3,0,0"/>
+            <TextBlock x:Name="PageTitle" Text="Home" FontSize="22" FontWeight="Bold" Foreground="#F1F5FD"/>
+            <TextBlock x:Name="PageSubtitle" Text="Everything you love to watch and hear." Margin="0,3,0,0" FontSize="11" Foreground="#8B9CB2"/>
           </StackPanel>
         </DockPanel>
-        <!-- Player stage plus single-page tab content. No nested glass gradients over video. -->
-        <Border x:Name="PlayerContainer" Grid.Row="1" Background="White" BorderBrush="#E4EAF4" BorderThickness="1" CornerRadius="17" ClipToBounds="True">
+        <Border x:Name="PlayerContainer" Grid.Row="1" Background="#141C29" BorderBrush="#29364B" BorderThickness="1" CornerRadius="14" ClipToBounds="True">
           <Grid>
-            <vlc:VideoView x:Name="VideoSurface" Background="Black" Visibility="Collapsed" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
-            <Grid x:Name="EmptyVisual" Visibility="Collapsed" Background="#101B2E">
+            <vlc:VideoView x:Name="VideoSurface" Visibility="Collapsed" Background="Black"/>
+            <Grid x:Name="EmptyVisual" Visibility="Collapsed" Background="#101722">
               <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                <TextBlock Text="▶" FontSize="57" Foreground="#A4CCFF" HorizontalAlignment="Center"/>
-                <TextBlock Text="Ready when you are" FontSize="21" FontWeight="SemiBold" Foreground="White" HorizontalAlignment="Center" Margin="0,18,0,7"/>
-                <TextBlock Text="Open a song or movie to start playing." Foreground="#A9BAD1" HorizontalAlignment="Center" FontSize="12"/>
-                <Button Content="＋ Open media" Style="{StaticResource PrimaryButton}" HorizontalAlignment="Center" Margin="0,18,0,0" Click="OpenFiles_Click"/>
+                <TextBlock Text="▶" FontSize="52" Foreground="#699BEA" HorizontalAlignment="Center"/>
+                <TextBlock Text="Ready to play" Foreground="#F0F5FF" FontSize="22" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,16,0,7"/>
+                <TextBlock Text="Open a movie or song and enjoy the moment." Foreground="#8196B4" FontSize="12" HorizontalAlignment="Center"/>
+                <Button Content="＋ Open media" Click="OpenFiles_Click" Style="{StaticResource PrimaryButton}" Margin="0,22,0,0" HorizontalAlignment="Center"/>
               </StackPanel>
             </Grid>
-            <Grid x:Name="MusicVisual" Visibility="Collapsed" Background="#172642">
+            <Grid x:Name="MusicVisual" Visibility="Collapsed" Background="#14233B">
               <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                <Border Width="142" Height="142" Background="#416FEB" CornerRadius="26">
-                  <TextBlock Text="♫" FontSize="82" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <Border Width="142" Height="142" CornerRadius="28" Background="#314B91">
+                  <TextBlock Text="♫" FontSize="73" Foreground="#DEEBFF" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
-                <TextBlock Text="NOW PLAYING" Foreground="#A7C3F6" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,24,0,7" FontSize="10"/>
-                <TextBlock x:Name="MusicTitle" Text="Music" Foreground="White" HorizontalAlignment="Center" FontSize="20" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" MaxWidth="420"/>
+                <TextBlock Text="NOW PLAYING" FontSize="11" FontWeight="SemiBold" Foreground="#88ACDE" HorizontalAlignment="Center" Margin="0,22,0,10"/>
+                <TextBlock x:Name="MusicTitle" Text="Music" FontSize="22" FontWeight="SemiBold" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="450"/>
               </StackPanel>
             </Grid>
-            <Grid x:Name="HomeDashboard" Visibility="Collapsed" Background="White">
+
+            <!-- Home dashboard, bounded local video preview cards -->
+            <Grid x:Name="HomeDashboard" Visibility="Collapsed" Background="#141C29">
               <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-              <Border Grid.Row="0" Margin="21,21,21,17" Background="#EDF4FF" CornerRadius="15" Padding="19">
+              <Border Grid.Row="0" Background="#1B2940" CornerRadius="14" Padding="22" Margin="20,20,20,18">
                 <DockPanel>
-                  <Button DockPanel.Dock="Right" Content="↻ Refresh" Style="{StaticResource ActionButton}" Click="RefreshHome_Click" Margin="12,0,0,0"/>
+                  <Button Content="↻ Refresh" Click="RefreshHome_Click" Style="{StaticResource ActionButton}" DockPanel.Dock="Right" Margin="9,0,0,0"/>
                   <StackPanel>
-                    <TextBlock Text="Your cinema" FontWeight="Bold" FontSize="22" Foreground="#203B64"/>
-                    <TextBlock Text="Videos on your device, ready to play." Foreground="#6886AD" FontSize="12" Margin="0,5,0,0"/>
+                    <TextBlock Text="Your cinema" FontSize="24" FontWeight="Bold"/>
+                    <TextBlock Text="Movies and clips from your own device." FontSize="12" Foreground="#93A6BF" Margin="0,7,0,0"/>
                   </StackPanel>
                 </DockPanel>
               </Border>
-              <DockPanel Grid.Row="1" Margin="23,0,22,13">
-                <TextBlock x:Name="HomeVideoCount" DockPanel.Dock="Right" Text="Scanning…" Foreground="#3478F6" FontSize="11"/>
-                <TextBlock x:Name="HomeScanStatus" Text="Looking for your videos" Foreground="#8595AA" FontSize="11"/>
+              <DockPanel Grid.Row="1" Margin="24,0,24,12">
+                <TextBlock x:Name="HomeVideoCount" DockPanel.Dock="Right" Text="Discovering videos…" Foreground="#7CBEFF" FontSize="11"/>
+                <TextBlock x:Name="HomeScanStatus" Text="Scanning your local folders" FontSize="11" Foreground="#8B9EB8"/>
               </DockPanel>
               <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                <StackPanel Margin="14,0,13,12">
-                  <StackPanel x:Name="HomeNoVideos" Visibility="Collapsed" HorizontalAlignment="Center" Margin="8,42,8,0">
-                    <TextBlock Text="▸" HorizontalAlignment="Center" Foreground="#407DDA" FontSize="43"/>
-                    <TextBlock Text="No local videos yet" HorizontalAlignment="Center" FontWeight="SemiBold" FontSize="17" Margin="0,10,0,6"/>
-                    <TextBlock Text="Choose a file or add your own video folder." HorizontalAlignment="Center" Foreground="#8B9CB0" FontSize="12" Margin="0,0,0,16"/>
-                    <Button Content="＋ Open videos" Style="{StaticResource PrimaryButton}" HorizontalAlignment="Center" Click="OpenFiles_Click"/>
+                <StackPanel Margin="15,0,14,16">
+                  <StackPanel x:Name="HomeNoVideos" Visibility="Collapsed" HorizontalAlignment="Center" Margin="0,65,0,0">
+                    <TextBlock Text="▸" Foreground="#76A5ED" FontSize="51" HorizontalAlignment="Center"/>
+                    <TextBlock Text="No videos found yet" HorizontalAlignment="Center" FontSize="19" FontWeight="SemiBold" Margin="0,14,0,7"/>
+                    <TextBlock Text="Open a file or add a folder to get started." HorizontalAlignment="Center" Foreground="#8295B0" FontSize="12" Margin="0,0,0,18"/>
+                    <Button Content="＋  Open videos" Style="{StaticResource PrimaryButton}" Click="OpenFiles_Click" HorizontalAlignment="Center"/>
                   </StackPanel>
                   <ItemsControl x:Name="HomeVideosList">
                     <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel Orientation="Horizontal"/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
-                    <ItemsControl.ItemTemplate>
-                      <DataTemplate>
-                        <Button Width="194" Height="175" Margin="5" BorderThickness="0" Padding="0" Background="Transparent" Cursor="Hand" Click="HomeVideo_Click">
-                          <Border BorderBrush="#E7EDF5" BorderThickness="1" CornerRadius="12" ClipToBounds="True" Background="#FFFFFF">
-                            <StackPanel>
-                              <Grid Height="111" Background="#192B49">
-                                <TextBlock Text="▶" FontSize="35" Foreground="#90BAFF" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                <Image Source="{Binding Thumbnail}" Stretch="UniformToFill"/>
-                                <Border HorizontalAlignment="Right" VerticalAlignment="Bottom" Background="#CC18345A" Margin="5" CornerRadius="6" Padding="8,4">
-                                  <TextBlock Text="▶" Foreground="White" FontSize="11"/>
-                                </Border>
-                              </Grid>
-                              <TextBlock Text="{Binding Title}" FontSize="12" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" Margin="10,9,10,3"/>
-                              <TextBlock Text="{Binding Details}" FontSize="10" Foreground="#879AB2" TextTrimming="CharacterEllipsis" Margin="10,0,10,7"/>
-                            </StackPanel>
-                          </Border>
-                        </Button>
-                      </DataTemplate>
-                    </ItemsControl.ItemTemplate>
+                    <ItemsControl.ItemTemplate><DataTemplate>
+                      <Button Click="HomeVideo_Click" Width="195" Height="171" Margin="6" Cursor="Hand" Background="Transparent" BorderThickness="0" Padding="0">
+                        <Border Background="#1C2839" BorderBrush="#2F3E55" BorderThickness="1" CornerRadius="11" ClipToBounds="True">
+                          <StackPanel>
+                            <Grid Height="108" Background="#0C1524">
+                              <TextBlock Text="▶" FontSize="34" Foreground="#5F8CCC" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                              <Image Source="{Binding Thumbnail}" Stretch="UniformToFill"/>
+                              <Border HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="7" Background="#B0101C31" CornerRadius="6" Padding="7,4">
+                                <TextBlock Text="▶ Play" Foreground="#FFFFFF" FontSize="10"/>
+                              </Border>
+                            </Grid>
+                            <TextBlock Text="{Binding Title}" FontSize="12" FontWeight="SemiBold" Foreground="#EDF3FF" TextTrimming="CharacterEllipsis" Margin="10,9,10,3"/>
+                            <TextBlock Text="{Binding Details}" FontSize="10" Foreground="#8598B4" TextTrimming="CharacterEllipsis" Margin="10,0,10,9"/>
+                          </StackPanel>
+                        </Border>
+                      </Button>
+                    </DataTemplate></ItemsControl.ItemTemplate>
                   </ItemsControl>
                 </StackPanel>
               </ScrollViewer>
             </Grid>
-            <Grid x:Name="LibraryLanding" Background="White" Visibility="Collapsed">
-              <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="390">
-                <Border Background="#EDF4FF" Width="88" Height="88" CornerRadius="23">
-                  <TextBlock x:Name="LibraryIcon" Text="♫" Foreground="#3478F6" FontSize="43" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                </Border>
-                <TextBlock x:Name="LibraryWelcome" Text="Your Music" FontSize="23" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,22,0,8"/>
-                <TextBlock x:Name="LibraryHint" Text="Choose something from your library on the right." Foreground="#8595AA" FontSize="12" TextAlignment="Center" TextWrapping="Wrap"/>
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,23,0,0">
-                  <Button Content="＋ Open files" Style="{StaticResource PrimaryButton}" Click="OpenFiles_Click" Margin="0,0,9,0"/>
-                  <Button Content="Add folder" Style="{StaticResource ActionButton}" Click="AddFolder_Click"/>
-                </StackPanel>
-              </StackPanel>
+
+            <!-- Proper full-width Music/Videos library, not a blank placeholder -->
+            <Grid x:Name="LibraryLanding" Visibility="Collapsed" Background="#141C29">
+              <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+              <Border Grid.Row="0" Background="#1B2940" CornerRadius="12" Margin="19" Padding="20">
+                <DockPanel>
+                  <Border DockPanel.Dock="Left" Width="54" Height="54" CornerRadius="12" Background="#314A75" Margin="0,0,17,0">
+                    <TextBlock x:Name="LibraryIcon" Text="♫" FontSize="27" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#DCEAFF"/>
+                  </Border>
+                  <StackPanel VerticalAlignment="Center">
+                    <TextBlock x:Name="LibraryWelcome" Text="Your music" FontSize="23" FontWeight="SemiBold"/>
+                    <TextBlock x:Name="LibraryHint" Text="Double-click any item to start playback." FontSize="11" Foreground="#A0B0C8" Margin="0,6,0,0"/>
+                  </StackPanel>
+                </DockPanel>
+              </Border>
+              <DockPanel Grid.Row="1" Margin="23,0,23,12">
+                <Button DockPanel.Dock="Right" Content="＋ Add folder" Style="{StaticResource ActionButton}" Click="AddFolder_Click"/>
+                <TextBlock Text="LIBRARY ITEMS" FontSize="10" Foreground="#91A4C0" FontWeight="SemiBold" VerticalAlignment="Center"/>
+              </DockPanel>
+              <ListBox x:Name="LibraryResults" Grid.Row="2" Margin="18,0,18,16" Background="Transparent" BorderThickness="0"
+                       ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.CanContentScroll="True" MouseDoubleClick="LibraryResults_DoubleClick"
+                       VirtualizingStackPanel.IsVirtualizing="True" VirtualizingStackPanel.VirtualizationMode="Recycling">
+                <ListBox.ItemTemplate><DataTemplate>
+                  <Grid Margin="5,5">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="48"/><ColumnDefinition Width="*"/><ColumnDefinition Width="100"/></Grid.ColumnDefinitions>
+                    <Border Width="43" Height="42" CornerRadius="9" Background="#273952">
+                      <TextBlock Text="▶" FontSize="16" Foreground="#8FB9FF" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="12,0,0,0">
+                      <TextBlock Text="{Binding Title}" Foreground="#ECF2FB" FontWeight="SemiBold" FontSize="13" TextTrimming="CharacterEllipsis"/>
+                      <TextBlock Text="{Binding Secondary}" Foreground="#8094B0" FontSize="11" Margin="0,4,0,0"/>
+                    </StackPanel>
+                    <TextBlock Grid.Column="2" Text="DOUBLE CLICK ▶" Foreground="#6786AF" FontSize="9" VerticalAlignment="Center" HorizontalAlignment="Right"/>
+                  </Grid>
+                </ListBox.ItemTemplate>
+              </ListBox>
             </Grid>
-            <ScrollViewer x:Name="SettingsPage" Visibility="Collapsed" Background="#FAFCFF" VerticalScrollBarVisibility="Auto">
-              <StackPanel MaxWidth="620" Margin="27">
+
+            <ScrollViewer x:Name="SettingsPage" Visibility="Collapsed" VerticalScrollBarVisibility="Auto" Background="#141C29">
+              <StackPanel MaxWidth="720" Margin="27,25">
                 <TextBlock Text="Settings" FontSize="26" FontWeight="Bold"/>
-                <TextBlock Text="Simple controls for your everyday watching and listening." Foreground="#8899AF" FontSize="12" Margin="0,7,0,21"/>
+                <TextBlock Text="Your player, your preferences." FontSize="12" Foreground="#8EA0B9" Margin="0,7,0,24"/>
                 <Border Style="{StaticResource PaneCard}">
                   <StackPanel>
-                    <TextBlock Text="Playback" FontWeight="SemiBold" FontSize="16"/>
-                    <CheckBox x:Name="AutoFullscreenCheck" Content="Automatically open videos in fullscreen" IsChecked="True" Checked="AutoFullscreen_Changed" Unchecked="AutoFullscreen_Changed" Margin="0,19,0,7" FontSize="13"/>
-                    <TextBlock Text="Switch this off if you prefer videos to open in a normal window. Press Esc to leave fullscreen." TextWrapping="Wrap" FontSize="11" Foreground="#899BB2" Margin="24,0,0,14"/>
-                    <TextBlock Text="Color theme" FontSize="12" FontWeight="SemiBold" Margin="0,6,0,9"/>
-                    <ComboBox x:Name="ThemePicker" Width="190" HorizontalAlignment="Left" SelectionChanged="Theme_Changed">
-                      <ComboBoxItem Content="Blue" IsSelected="True"/><ComboBoxItem Content="Violet"/>
-                      <ComboBoxItem Content="Ocean"/><ComboBoxItem Content="Rose"/><ComboBoxItem Content="Midnight"/>
+                    <TextBlock Text="Playback" FontSize="18" FontWeight="SemiBold"/>
+                    <CheckBox x:Name="AutoFullscreenCheck" Content="Play videos in fullscreen by default" IsChecked="True" Checked="AutoFullscreen_Changed" Unchecked="AutoFullscreen_Changed" Margin="0,19,0,9" FontSize="13"/>
+                    <TextBlock Text="Turn this off to play movies in a window. Press Esc to exit fullscreen." Foreground="#8CA0BB" FontSize="11" TextWrapping="Wrap" Margin="22,0,0,15"/>
+                    <TextBlock Text="Accent preset" FontWeight="SemiBold" FontSize="12" Margin="0,4,0,8"/>
+                    <ComboBox x:Name="ThemePicker" Width="160" HorizontalAlignment="Left" SelectionChanged="Theme_Changed">
+                      <ComboBoxItem Content="Blue" IsSelected="True"/>
+                      <ComboBoxItem Content="Violet"/><ComboBoxItem Content="Ocean"/>
+                      <ComboBoxItem Content="Rose"/><ComboBoxItem Content="Midnight"/>
                     </ComboBox>
                   </StackPanel>
                 </Border>
                 <Border Style="{StaticResource PaneCard}" Margin="0,14,0,0">
                   <StackPanel>
-                    <TextBlock Text="Media Library" FontWeight="SemiBold" FontSize="16" Margin="0,0,0,7"/>
-                    <TextBlock Text="Home scans your Videos folder, top-level Downloads, and imported library items. Videos never leave your PC." Foreground="#8193A8" TextWrapping="Wrap" FontSize="12"/>
-                    <Button Content="↻ Refresh local videos" Style="{StaticResource ActionButton}" Click="RefreshHome_Click" HorizontalAlignment="Left" Margin="0,14,0,0"/>
+                    <TextBlock Text="Local library" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,9"/>
+                    <TextBlock Text="Nova only searches your Videos folder, Downloads (top level), and media you add. Local video previews never leave your computer." FontSize="12" Foreground="#94A8C1" TextWrapping="Wrap"/>
+                    <Button Content="↻ Refresh local videos" Style="{StaticResource ActionButton}" Click="RefreshHome_Click" HorizontalAlignment="Left" Margin="0,16,0,0"/>
                   </StackPanel>
                 </Border>
               </StackPanel>
             </ScrollViewer>
-            <ScrollViewer x:Name="UpdatesPage" Visibility="Collapsed" Background="#FAFCFF" VerticalScrollBarVisibility="Auto">
-              <StackPanel MaxWidth="620" Margin="27">
+
+            <ScrollViewer x:Name="UpdatesPage" Visibility="Collapsed" Background="#141C29" VerticalScrollBarVisibility="Auto">
+              <StackPanel MaxWidth="720" Margin="27,25">
                 <TextBlock Text="Updates" FontSize="26" FontWeight="Bold"/>
-                <TextBlock Text="Keep Nova Player up to date, on your terms." FontSize="12" Foreground="#8A9AAF" Margin="0,7,0,23"/>
+                <TextBlock Text="Simple, secure updates — only when you choose." FontSize="12" Foreground="#8EA0B9" Margin="0,7,0,24"/>
                 <Border Style="{StaticResource PaneCard}">
                   <StackPanel>
-                    <TextBlock Text="Nova Player 1.2.1" FontSize="18" FontWeight="SemiBold"/>
-                    <TextBlock Text="Check GitHub for new official versions. No background downloads or silent installations." Foreground="#8094AA" FontSize="12" TextWrapping="Wrap" Margin="0,10,0,18"/>
-                    <Button x:Name="CheckUpdatesButton" Style="{StaticResource PrimaryButton}" HorizontalAlignment="Left" Content="↻ Check for updates" Click="CheckUpdates_Click"/>
-                    <Button x:Name="InstallUpdateButton" Style="{StaticResource ActionButton}" HorizontalAlignment="Left" Content="↓ Download &amp; install" Margin="0,11,0,0" Visibility="Collapsed" Click="InstallUpdate_Click"/>
-                    <ProgressBar x:Name="UpdateProgress" Visibility="Collapsed" Minimum="0" Maximum="100" Height="6" Margin="0,13,0,0"/>
-                    <TextBlock x:Name="UpdateStatus" Text="You decide when to check for updates." Foreground="#8093A9" TextWrapping="Wrap" FontSize="12" Margin="0,15,0,0"/>
+                    <TextBlock Text="Nova Player 1.3.0" FontSize="21" FontWeight="SemiBold"/>
+                    <TextBlock Text="Updates are checked manually and verified using official GitHub SHA-256 checksums before the normal setup wizard runs." Foreground="#94A8C1" FontSize="12" TextWrapping="Wrap" Margin="0,10,0,18"/>
+                    <Button x:Name="CheckUpdatesButton" Content="↻ Check for updates" Click="CheckUpdates_Click" Style="{StaticResource PrimaryButton}" HorizontalAlignment="Left"/>
+                    <Button x:Name="InstallUpdateButton" Content="↓ Download &amp; install" Click="InstallUpdate_Click" Style="{StaticResource ActionButton}" HorizontalAlignment="Left" Margin="0,12,0,0" Visibility="Collapsed"/>
+                    <ProgressBar x:Name="UpdateProgress" Height="7" Margin="0,18,0,0" Minimum="0" Maximum="100" Visibility="Collapsed"/>
+                    <TextBlock x:Name="UpdateStatus" Text="You're in control. Updates are never installed silently." FontSize="12" Foreground="#9AAAC0" TextWrapping="Wrap" Margin="0,16,0,0"/>
                   </StackPanel>
                 </Border>
-                <TextBlock Text="Updates are downloaded from GitHub and verified with the release's SHA-256 checksum. The normal setup wizard asks for your confirmation." Foreground="#97A5B7" TextWrapping="Wrap" FontSize="11" Margin="4,17,4,0"/>
               </StackPanel>
             </ScrollViewer>
-            <ScrollViewer x:Name="AboutPage" Visibility="Collapsed" Background="#FAFCFF">
-              <StackPanel MaxWidth="610" Margin="27">
+
+            <ScrollViewer x:Name="AboutPage" Visibility="Collapsed" Background="#141C29">
+              <StackPanel MaxWidth="720" Margin="27,25">
                 <TextBlock Text="About Nova Player" FontSize="26" FontWeight="Bold"/>
-                <Border Style="{StaticResource PaneCard}" Margin="0,22,0,0">
+                <Border Style="{StaticResource PaneCard}" Margin="0,23,0,0">
                   <StackPanel>
-                    <TextBlock Text="▶" FontSize="50" Foreground="#3478F6"/>
-                    <TextBlock Text="Nova Player" FontWeight="Bold" FontSize="22" Margin="0,12,0,5"/>
-                    <TextBlock Text="Your media. Beautifully simple." Foreground="#617A9A" FontSize="13"/>
-                    <TextBlock Text="Version 1.2.1 · Technical Preview" Margin="0,16,0,0" FontSize="12" Foreground="#7D92AD"/>
-                    <TextBlock Text="A lightweight, offline-first Windows music and video player powered by LibVLC. Fullscreen movies, local video previews, music controls, subtitles and verified optional updates." TextWrapping="Wrap" FontSize="12" Foreground="#6F839E" Margin="0,15,0,0"/>
-                    <TextBlock Text="Source code: github.com/vihangaabishek5-lang/Luma-Player" Foreground="#3070D3" FontSize="12" Margin="0,20,0,0"/>
-                    <TextBlock Text="Nova Player does not upload your library or local files." TextWrapping="Wrap" Foreground="#96A6B8" FontSize="11" Margin="0,15,0,0"/>
+                    <Image Source="Assets/NovaPlayer.ico" Width="78" Height="78" HorizontalAlignment="Left" Margin="0,0,0,14"/>
+                    <TextBlock Text="Nova Player" FontSize="23" FontWeight="Bold"/>
+                    <TextBlock Text="Your media, beautifully simple." FontSize="12" Foreground="#91ACCF" Margin="0,7,0,17"/>
+                    <TextBlock Text="Version 1.3.0 · Stable Candidate" Foreground="#B1C0D5" FontSize="12"/>
+                    <TextBlock Text="A minimal, privacy-focused music and video player powered by LibVLC. Local library previews, fullscreen playback, subtitles, hardware-accelerated decoding where available, and verified in-app updates." TextWrapping="Wrap" FontSize="12" Foreground="#8FA2BE" Margin="0,16,0,0"/>
+                    <TextBlock Text="Open source: github.com/vihangabhishek/Luma-Player" FontSize="12" Foreground="#77AEFC" Margin="0,19,0,0"/>
                   </StackPanel>
                 </Border>
               </StackPanel>
             </ScrollViewer>
           </Grid>
         </Border>
-        <Border x:Name="PlaybackTools" Grid.Row="2" Background="White" BorderBrush="#E4EAF4" BorderThickness="1" CornerRadius="14" Padding="11" Margin="0,11,0,0">
+        <Border x:Name="PlaybackTools" Grid.Row="2" Background="#162132" CornerRadius="12" Padding="11" Margin="0,10,0,0" Visibility="Collapsed">
           <DockPanel LastChildFill="False">
-            <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
-              <Button Style="{StaticResource ActionButton}" Content="Subtitles" Click="Subtitle_Click" Margin="0,0,6,0"/>
-              <Button Style="{StaticResource ActionButton}" Content="Snapshot" Click="Snapshot_Click" Margin="0,0,6,0"/>
-              <Button Style="{StaticResource ActionButton}" Content="⛶ Fullscreen" Click="Fullscreen_Click"/>
+            <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
+              <Button Content="Subtitles" Click="Subtitle_Click" Style="{StaticResource ActionButton}" Margin="0,0,7,0"/>
+              <Button Content="Snapshot" Click="Snapshot_Click" Style="{StaticResource ActionButton}" Margin="0,0,7,0"/>
+              <Button Content="⛶ Fullscreen" Click="Fullscreen_Click" Style="{StaticResource ActionButton}"/>
             </StackPanel>
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" DockPanel.Dock="Right" VerticalAlignment="Center">
-              <TextBlock Text="Speed" FontSize="11" Foreground="#8A9AAC" VerticalAlignment="Center" Margin="0,0,8,0"/>
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+              <TextBlock Text="Speed" FontSize="11" Foreground="#90A4C0" VerticalAlignment="Center" Margin="0,0,8,0"/>
               <ComboBox x:Name="SpeedPicker" Width="76" SelectionChanged="Speed_Changed">
                 <ComboBoxItem Content="0.5×" Tag="0.5"/><ComboBoxItem Content="0.75×" Tag="0.75"/>
                 <ComboBoxItem Content="1×" Tag="1" IsSelected="True"/><ComboBoxItem Content="1.25×" Tag="1.25"/>
                 <ComboBoxItem Content="1.5×" Tag="1.5"/><ComboBoxItem Content="2×" Tag="2"/>
               </ComboBox>
-              <TextBlock Text="Aspect" VerticalAlignment="Center" FontSize="11" Foreground="#8A9AAC" Margin="12,0,8,0"/>
-              <ComboBox x:Name="AspectPicker" Width="91" SelectionChanged="Aspect_Changed">
+              <TextBlock Text="Aspect" FontSize="11" Foreground="#90A4C0" VerticalAlignment="Center" Margin="12,0,7,0"/>
+              <ComboBox x:Name="AspectPicker" Width="85" SelectionChanged="Aspect_Changed">
                 <ComboBoxItem Content="Original" Tag="" IsSelected="True"/>
-                <ComboBoxItem Content="16:9" Tag="16:9"/>
-                <ComboBoxItem Content="4:3" Tag="4:3"/>
-                <ComboBoxItem Content="21:9" Tag="21:9"/>
+                <ComboBoxItem Content="16:9" Tag="16:9"/><ComboBoxItem Content="4:3" Tag="4:3"/><ComboBoxItem Content="21:9" Tag="21:9"/>
               </ComboBox>
             </StackPanel>
           </DockPanel>
         </Border>
       </Grid>
-      <!-- compact library panel -->
-      <Border x:Name="LibraryPanel" Grid.Column="2" Background="White" BorderBrush="#E4EAF4" BorderThickness="1" CornerRadius="17" Padding="15">
+
+      <Border x:Name="LibraryPanel" Grid.Column="2" Background="#111926" CornerRadius="15" Padding="15" Visibility="Collapsed">
         <Grid>
           <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-          <DockPanel Grid.Row="0" Margin="2,3,0,15">
-            <Button DockPanel.Dock="Right" Content="＋" Style="{StaticResource PrimaryButton}" Click="OpenFiles_Click"/>
-            <StackPanel>
-              <TextBlock Text="Your Library" FontSize="16" FontWeight="Bold"/>
-              <TextBlock x:Name="LibraryCount" Text="0 items" FontSize="11" Foreground="#99A9BB" Margin="0,4,0,0"/>
+          <DockPanel Grid.Row="0" Margin="0,5,0,17">
+            <Button DockPanel.Dock="Right" Content="＋" Click="OpenFiles_Click" Style="{StaticResource PrimaryButton}"/>
+            <StackPanel VerticalAlignment="Center">
+              <TextBlock Text="Queue" FontSize="17" FontWeight="SemiBold"/>
+              <TextBlock x:Name="LibraryCount" Text="0 files" Foreground="#7B8DAA" FontSize="10" Margin="0,5,0,0"/>
             </StackPanel>
           </DockPanel>
-          <TextBox Grid.Row="1" x:Name="SearchBox" TextChanged="Search_Changed" ToolTip="Search your library" Margin="0,0,0,13"/>
-          <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,13">
-            <Button x:Name="ShuffleButton" Content="Shuffle: Off" Style="{StaticResource ActionButton}" Click="Shuffle_Click" Margin="0,0,5,0"/>
-            <Button x:Name="RepeatButton" Content="Repeat: All" Style="{StaticResource ActionButton}" Click="Repeat_Click"/>
+          <TextBox x:Name="SearchBox" Grid.Row="1" TextChanged="Search_Changed" ToolTip="Filter queue" Margin="0,0,0,12"/>
+          <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,12">
+            <Button x:Name="ShuffleButton" Content="Shuffle: Off" Click="Shuffle_Click" Style="{StaticResource ActionButton}" Margin="0,0,6,0"/>
+            <Button x:Name="RepeatButton" Content="Repeat: All" Click="Repeat_Click" Style="{StaticResource ActionButton}"/>
           </StackPanel>
-          <ListBox x:Name="Playlist" Grid.Row="3" Background="Transparent" BorderThickness="0" MouseDoubleClick="Playlist_DoubleClick" SelectionChanged="Playlist_SelectionChanged" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+          <ListBox x:Name="Playlist" Grid.Row="3" Background="Transparent" BorderThickness="0" MouseDoubleClick="Playlist_DoubleClick" SelectionChanged="Playlist_SelectionChanged"
+                   VirtualizingStackPanel.IsVirtualizing="True" VirtualizingStackPanel.VirtualizationMode="Recycling" ScrollViewer.CanContentScroll="True">
             <ListBox.ItemTemplate><DataTemplate>
-              <Grid Margin="1,3">
-                <Grid.ColumnDefinitions><ColumnDefinition Width="34"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                <Border Width="32" Height="36" CornerRadius="8" Background="#EEF4FD">
-                  <TextBlock Text="▶" Foreground="#6499DE" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+              <StackPanel Orientation="Horizontal" Margin="1,4">
+                <Border Width="34" Height="34" CornerRadius="8" Background="#2C3E5B" Margin="0,0,9,0">
+                  <TextBlock Text="♪" FontSize="15" Foreground="#99B9EC" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
-                <StackPanel Grid.Column="1" Margin="8,1,1,0">
-                  <TextBlock Text="{Binding Title}" FontSize="12" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
-                  <TextBlock Text="{Binding Secondary}" FontSize="10" Foreground="#9BAABC" Margin="0,4,0,0"/>
+                <StackPanel Width="171" VerticalAlignment="Center">
+                  <TextBlock Text="{Binding Title}" Foreground="#E8F0FE" FontSize="12" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                  <TextBlock Text="{Binding Secondary}" Foreground="#8497B3" FontSize="10" Margin="0,4,0,0"/>
                 </StackPanel>
-              </Grid>
+              </StackPanel>
             </DataTemplate></ListBox.ItemTemplate>
           </ListBox>
-          <StackPanel Grid.Row="4" Margin="0,14,0,0">
-            <Button Content="♡ Favorite / unfavorite" Style="{StaticResource ActionButton}" Click="Favorite_Click" Margin="0,0,0,7"/>
-            <Button Content="Remove from library" Style="{StaticResource ActionButton}" Click="Remove_Click"/>
+          <StackPanel Grid.Row="4" Margin="0,12,0,0">
+            <Button Content="♡ Favorite" Click="Favorite_Click" Style="{StaticResource ActionButton}" Margin="0,0,0,7"/>
+            <Button Content="Remove from queue" Click="Remove_Click" Style="{StaticResource ActionButton}"/>
           </StackPanel>
         </Grid>
       </Border>
     </Grid>
-    <!-- playback dock, intentionally kept separate from video surface -->
-    <Border x:Name="TransportDock" Grid.Row="1" Margin="13,11,13,13" Padding="17,13" Background="White" BorderBrush="#E4EAF4" BorderThickness="1" CornerRadius="15">
+
+    <Border x:Name="TransportDock" Grid.Row="2" Background="#111926" BorderBrush="#293246" BorderThickness="1,1,0,0" Padding="23,15">
       <Grid>
-        <Grid.ColumnDefinitions><ColumnDefinition Width="220"/><ColumnDefinition Width="*"/><ColumnDefinition Width="158"/></Grid.ColumnDefinitions>
+        <Grid.ColumnDefinitions><ColumnDefinition Width="235"/><ColumnDefinition Width="*"/><ColumnDefinition Width="150"/></Grid.ColumnDefinitions>
         <StackPanel Grid.Column="0" VerticalAlignment="Center">
-          <TextBlock x:Name="NowTitle" Text="Nothing playing" FontSize="13" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
-          <TextBlock x:Name="NowMeta" Text="Nova Player" FontSize="11" Foreground="#9AACBF" Margin="0,4,0,0" TextTrimming="CharacterEllipsis"/>
+          <TextBlock x:Name="NowTitle" Text="Nothing playing" Foreground="#ECF3FD" FontSize="13" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+          <TextBlock x:Name="NowMeta" Text="Nova Player" Foreground="#7F94B0" FontSize="11" TextTrimming="CharacterEllipsis" Margin="0,5,0,0"/>
         </StackPanel>
         <StackPanel Grid.Column="1" VerticalAlignment="Center">
           <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-            <Button Content="⏮" Style="{StaticResource ActionButton}" Click="Previous_Click" Margin="0,0,6,0"/>
-            <Button Content="−10s" Style="{StaticResource ActionButton}" Click="Back_Click" Margin="0,0,6,0"/>
-            <Button x:Name="PlayPauseButton" Content="▶ Play" Style="{StaticResource PrimaryButton}" Click="PlayPause_Click" Margin="0,0,6,0"/>
-            <Button Content="+10s" Style="{StaticResource ActionButton}" Click="Forward_Click" Margin="0,0,6,0"/>
-            <Button Content="⏭" Style="{StaticResource ActionButton}" Click="Next_Click"/>
+            <Button Content="⏮" Click="Previous_Click" Style="{StaticResource ActionButton}" Margin="0,0,7,0"/>
+            <Button Content="−10s" Click="Back_Click" Style="{StaticResource ActionButton}" Margin="0,0,7,0"/>
+            <Button x:Name="PlayPauseButton" Content="▶ Play" Click="PlayPause_Click" Style="{StaticResource PrimaryButton}" Margin="0,0,7,0"/>
+            <Button Content="+10s" Click="Forward_Click" Style="{StaticResource ActionButton}" Margin="0,0,7,0"/>
+            <Button Content="⏭" Click="Next_Click" Style="{StaticResource ActionButton}"/>
           </StackPanel>
-          <DockPanel Margin="0,8,0,0">
-            <TextBlock x:Name="PositionText" DockPanel.Dock="Left" Width="42" Text="00:00" FontSize="10" Foreground="#8193A9" VerticalAlignment="Center"/>
-            <TextBlock x:Name="DurationText" DockPanel.Dock="Right" Width="42" Text="00:00" FontSize="10" Foreground="#8193A9" TextAlignment="Right" VerticalAlignment="Center"/>
-            <Slider x:Name="SeekSlider" Minimum="0" Maximum="1000" Value="0" PreviewMouseDown="Seek_Begin" PreviewMouseUp="Seek_End" IsMoveToPointEnabled="True"/>
+          <DockPanel Margin="0,9,0,0">
+            <TextBlock x:Name="PositionText" Text="00:00" FontSize="11" Foreground="#90A5C0" Width="43" DockPanel.Dock="Left" VerticalAlignment="Center"/>
+            <TextBlock x:Name="DurationText" Text="00:00" FontSize="11" Foreground="#90A5C0" Width="43" DockPanel.Dock="Right" TextAlignment="Right" VerticalAlignment="Center"/>
+            <Slider x:Name="SeekSlider" Minimum="0" Maximum="1000" IsMoveToPointEnabled="True" PreviewMouseDown="Seek_Begin" PreviewMouseUp="Seek_End"/>
           </DockPanel>
         </StackPanel>
-        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Right">
-          <Button x:Name="MuteButton" Content="◖))" Click="Mute_Click" Style="{StaticResource ActionButton}" Margin="0,0,7,0"/>
-          <Slider x:Name="VolumeSlider" Minimum="0" Maximum="100" Width="74" Value="75" ValueChanged="Volume_Changed" VerticalAlignment="Center"/>
-          <Button Content="⛶" Style="{StaticResource ActionButton}" ToolTip="Fullscreen (F11)" Margin="7,0,0,0" Click="Fullscreen_Click"/>
+        <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+          <Button x:Name="MuteButton" Content="◖))" Click="Mute_Click" Style="{StaticResource ActionButton}" Margin="0,0,8,0"/>
+          <Slider x:Name="VolumeSlider" Minimum="0" Maximum="100" Width="65" Value="75" ValueChanged="Volume_Changed" VerticalAlignment="Center"/>
+          <Button Content="⛶" Click="Fullscreen_Click" Style="{StaticResource ActionButton}" Margin="9,0,0,0"/>
         </StackPanel>
       </Grid>
     </Border>

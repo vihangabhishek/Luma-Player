@@ -1,78 +1,57 @@
-## Nova Player v1.2.1 — Performance & Responsiveness
-
-This is **one full Windows installer** (not Lite/Full editions). The app now loads LibVLC only when media plays, off the UI thread. Media opening and pause/resume run without blocking the WPF window. Position updates are less frequent, preview thumbnails and visible library items are bounded, and settings writes are queued in the background. Full VLC codec files remain bundled, so the installer is still relatively large.
-
-**Update from v1.2.0:** Open **Updates → Check for updates → Download & install**, confirm the verified download, finish the Windows setup wizard, and reopen Nova Player. Saved library data is preserved. This unsigned preview may show a SmartScreen warning; do not disable security protection.
-
-**Testing:** Windows CI validates native playback engine initialization and WPF startup, not every video format and GPU. Please report repeatable freezes with the local startup log after removing any private paths.
-
----
-<p align="center"><img src="Test/assets/NovaPlayer.png" alt="Nova Player" width="100"></p>
-
 # Nova Player
-**Your media. Beautifully simple.**
 
-A minimal, offline-first **Windows 10/11 music and video player**. Native Windows app, LibVLC engine, soft-blue design, fast loading and a movie-first fullscreen experience.
+**Your media. Beautifully simple.** A clean video and music player for Windows, built with native WPF and the LibVLC engine.
 
-[**Download Nova Player v1.2.0 — Windows Setup.exe**](https://github.com/vihangabhishek/Luma-Player/releases/tag/v1.2.0-preview)
+**[Download Nova Player v1.3.0 — Windows Setup.exe](https://github.com/vihangabhishek/Luma-Player/releases/tag/v1.3.0-preview)**
 
-> **Preview:** Unsigned Windows installer. Automated Windows compilation, LibVLC startup and WPF home-screen smoke tests are required before each published build. Media-playback performance, thumbnails and the upgrade flow should be checked on a real Windows PC before production use. Never disable Windows Defender.
+> Stability candidate / unsigned preview. Windows CI checks compilation, native LibVLC loading, actual WAV playback, WPF window startup and navigation. Physical Windows GPU/driver/movie/subtitle/installer testing is still needed. Never disable Windows Defender.
 
-## Highlights
+## What's new in v1.3.0
 
-| Feature | Details |
+A redesigned dark interface, minimal lightweight surfaces, and six working navigation tabs:
+
+- **Home** — video preview cards from your own Videos folder, top-level Downloads and imported library, with Explorer thumbnails when available.
+- **Music** — a full-width scrollable music library with double-click to play.
+- **Videos** — a full-width dedicated video browser, no empty placeholder.
+- **Settings** — fullscreen-on-open preference, dark accent preset, and video refresh.
+- **Updates** — manual verified GitHub release checks, downloads, and installer launch.
+- **About** — app information and privacy.
+- **Player view** — large black video surface, right-hand playlist, streamlined play/pause/seek/volume/shuffle/repeat, subtitles, snapshots, aspect/speed controls and fullscreen.
+
+Background media loading prevents many window hangs; the browser lists virtualize media items and thumbnails are capped. Movies go fullscreen by default; turn it off in Settings or press Esc to leave. GPU playback varies by hardware; zero-lag 4K is not guaranteed.
+
+## Install and update
+
+Download **Nova-Player-Setup-1.3.0.exe** in the Releases page. It contains both the .NET desktop runtime and the complete LibVLC codec engine, so the installer is around 125 MB.
+
+From Nova v1.2.0/v1.2.1, open **Updates → Check for updates → Download & install**. The app verifies the official GitHub SHA-256 checksum and, after your confirmation, opens the normal Windows installer. If your old version is frozen, close it and use the direct link above instead. It preserves user state in %APPDATA%/NovaPlayer/state.json and imports an older LumaPlayer state if needed.
+
+## Keyboard shortcuts
+
+| Keys | Action |
 | --- | --- |
-| Minimal navigation | Home, Music, Videos, Settings, Updates, About |
-| Video playback | LibVLC, MP4/MKV/AVI/WebM and other supported formats |
-| Audio | MP3/FLAC/WAV and more (codec dependent) |
-| Fullscreen movies | **On by default** for local videos; configurable in **Settings**; Esc to exit |
-| Fast window startup | Deferred initialization of LibVLC until after first UI paint |
-| Home gallery | Local video cards from Videos, top-level Downloads and imported library |
-| Local thumbnails | Windows Explorer thumbnail system; graceful fallback for unavailable codecs |
-| Library | Import files and folders, local search, favorites, shuffle/repeat, playback resume |
-| Player | Subtitles, snapshots, seeking, 10-second skips, playback speed and aspect ratio |
-| Themes | Blue, Violet, Ocean, Rose and Midnight |
-| Updates | Manual in-app check, SHA-256 verified download and confirmation-based Windows setup |
-| Privacy | No account needed, no media uploaded |
+| Space | Play / pause |
+| Left / Right | Skip 5 seconds |
+| Up / Down | Volume |
+| F11 | Video fullscreen |
+| Esc | Exit fullscreen |
+| Ctrl + O | Open media file |
+| Ctrl + N | Next track |
 
-## Requirements
-
-- Windows 10/11, x64
-- Compatible GPU and drivers for hardware decoding (performance varies by hardware and codec)
-- Storage for an approximately 125 MB Setup.exe and an unpacked self-contained application
-- Internet only for optional network streams and updates
-
-## Installation / Updating from Luma Player
-
-1. Download **Nova-Player-Setup-1.2.0.exe** from the [v1.2.0-preview release](https://github.com/vihangabhishek/Luma-Player/releases/tag/v1.2.0-preview).
-2. Close the previous Luma Player before installing Nova Player.
-3. Run the normal Windows setup wizard.
-4. Your previous player library/settings are read from the old **LumaPlayer** settings path on first launch when there isn't a Nova settings file; the original stays untouched.
-5. Open **Settings** to enable/disable default video fullscreen. Use **Updates** to check for new versions.
-
-The original **Luma-Player** GitHub repository name remains unchanged during the app rebrand, preserving compatibility with the previous Luma in-app updater. Previous v1.1 updater users can upgrade via an identical compatibility installer named **Luma-Player-Setup-1.2.0.exe**.
+Local playback works offline with MP4, MKV, MP3, FLAC and other LibVLC-supported formats. Network streams only contact the URL you explicitly open. Some movies will display a play icon instead of a thumbnail if Windows Explorer has no preview handler for that format.
 
 ## Build from source
 
-```powershell
-dotnet restore Test/src/NovaPlayer/NovaPlayer.csproj --runtime win-x64
-dotnet publish Test/src/NovaPlayer/NovaPlayer.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=false -o Test/publish
-```
+Requirements: Windows 10/11, .NET 8 SDK, Inno Setup 6 for packaging.
 
-This builds **NovaPlayer.exe**. The Windows GitHub Actions workflow packages it using Inno Setup 6; see `.github/workflows/windows.yml` and `Test/installer/NovaPlayer.iss`.
+1. Run: dotnet restore Test/src/NovaPlayer/NovaPlayer.csproj -r win-x64
+2. Run: dotnet publish Test/src/NovaPlayer/NovaPlayer.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=false -o Test/publish
+3. The GitHub Actions workflow at .github/workflows/windows.yml tests and packages the Windows installer.
 
-## Support and limitations
+## Privacy, licensing and troubleshooting
 
-- Not all files have Windows Explorer thumbnails; cards use a fallback play icon.
-- Fullscreen controls use F11 and Esc; some GPU/driver combinations may require testing.
-- Windows lock-screen media transport controls are **not** yet implemented.
-- No silent or background updater: updates require user action, valid published SHA-256 digest and confirmation.
-- Installer is not digitally signed. Microsoft SmartScreen may warn. Never bypass security software.
-- To report startup crashes, check `%LOCALAPPDATA%\NovaPlayer\logs\startup.log` (remove private paths before sharing).
+The player does not upload local media, metadata or thumbnails, has no user account or telemetry, and contacts GitHub only when you ask it to check for an update. Diagnostic logs stay in %LOCALAPPDATA%/NovaPlayer/logs/startup.log. Redact private paths before sharing.
 
-## License and third-party notices
+Source: MIT License (Test/LICENSE). Third-party: LibVLCSharp and VideoLAN LibVLC (Test/THIRD_PARTY.md).
 
-See [MIT license](Test/LICENSE) and [third-party licenses](Test/THIRD_PARTY.md). LibVLC and LibVLCSharp have their own applicable notices.
-
----
-Nova Player is the rebranded continuation of Luma Player.
+The GitHub repo address remains **vihangabhishek/Luma-Player** for compatibility with older updates, while the app installed on your PC is **Nova Player**.

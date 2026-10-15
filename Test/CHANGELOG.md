@@ -1,23 +1,22 @@
-## 1.2.1 — Smoother playback and responsiveness
+# Nova Player Changelog
 
-- Initialize native VLC asynchronously to keep the app window responsive.
-- Open local media and network streams on background workers with serialized media requests.
-- Offload playback pause/resume from the UI thread.
-- Reduce playback progress polling and skip it during native media opening.
-- Defer Home folder scanning, reduce thumbnail processing and cap visible library items.
-- Queue and coalesce settings saves instead of waiting for disk I/O on the UI thread.
-- Avoid blocking WPF close while native playback tears down.
-- Preserve one complete self-contained app, offline codec support, and in-app updates.
-# Nova Player — Changelog
+## v1.3.0 — Dark UI Redesign (Stability Candidate)
 
-## 1.2.0 preview
-- Rebranded desktop application, icon, executable, Windows installer and UI as **Nova Player**.
-- Simplified desktop UX with Home, Music, Videos, Settings, Updates and About views.
-- Enabled immersive fullscreen when opening local videos by default; added switch under Settings.
-- Deferred heavy VLC startup until after first window paint for faster perceived launch.
-- Preserved old Luma Player library settings with nondestructive first-run migration.
-- Kept legacy updater compatibility with a second installer filename containing identical Nova binary.
+- Fully redesigned dark UI with compact sidebar, persistent top toolbar and playback dock.
+- Functional Home, Music, Videos, Settings, Updates and About tabs.
+- Full-width, virtualized Music/Videos lists and playable double-click items; player queue only when playing.
+- Genuine video fullscreen hides the app toolbar and dock, returning via Esc.
+- Improved navigation state and dark accent appearance.
+- Safer playback-null guards and asynchronous media cleanup/removal.
+- Transient LibVLC initialization failures can be retried.
+- Windows automated smoke test exercises all six tabs, plus native audio playback tests.
+- Preserves local music/video library, LibVLC codecs, video playback and manual SHA-256 verified updates.
+- Preview limitations: installer is not signed; performance on every GPU and movie type not yet tested.
 
-## Earlier versions
-Luma Player 1.1 introduced offline Home video previews and a manual SHA-256 verified updater.
-Luma Player 1.0.1 added native VLC startup diagnostics.
+## v1.2.1 — Performance and Responsiveness
+
+- Asynchronous VLC engine loading and media opening, capped video previews, background state saving.
+
+## v1.2.0 — Nova Rebrand
+
+- Nova Player branding, minimal player controls and in-app updates.
