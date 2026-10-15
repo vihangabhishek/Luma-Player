@@ -252,7 +252,7 @@
                     </StackPanel>
                     <TextBlock Grid.Column="2" Text="DOUBLE CLICK ▶" Foreground="#6786AF" FontSize="9" VerticalAlignment="Center" HorizontalAlignment="Right"/>
                   </Grid>
-                </ListBox.ItemTemplate>
+                </DataTemplate></ListBox.ItemTemplate>
               </ListBox>
             </Grid>
 
